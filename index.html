@@ -4196,9 +4196,19 @@ input:checked + .slider:before {
     </div>
 </div>
 <!-- ▲▲▲ 替换结束 ▲▲▲ -->
-            </div>
+</div>
           
-            <div id="world-book-screen" class="screen"><div class="header"><span class="back-btn" onclick="showScreen('home-screen')">‹</span><span>世界书</span><span class="action-btn" id="add-world-book-btn">+</span></div><div id="world-book-list"></div></div>
+<div id="world-book-screen" class="screen">
+    <div class="header">
+        <span class="back-btn" onclick="showScreen('home-screen')">‹</span>
+        <span>世界书</span>
+        <div class="header-actions"> <!-- 【推荐】用一个容器把按钮包起来 -->
+            <span class="action-btn" id="manage-world-book-categories-btn">管理分类</span>
+            <span class="action-btn" id="add-world-book-btn">+</span>
+        </div>
+    </div>
+    <div id="world-book-list"></div>
+</div>
             <div id="world-book-editor-screen" class="screen">
                 <div class="header">
                     <span class="back-btn" onclick="showScreen('world-book-screen')">‹</span>
@@ -4210,6 +4220,16 @@ input:checked + .slider:before {
                         <label for="world-book-name-input">书名</label>
                         <input type="text" id="world-book-name-input" placeholder="请输入世界书的名称...">
                     </div>
+
+        <!-- ▼▼▼ 【全新】在这里添加分类选择 ▼▼▼ -->
+        <div class="form-group">
+            <label for="world-book-category-select">分类</label>
+            <select id="world-book-category-select">
+                <!-- 选项将由JS动态生成 -->
+            </select>
+        </div>
+        <!-- ▲▲▲ 添加结束 ▲▲▲ -->
+
                     <div class="form-group" style="height: 100%;">
                         <label for="world-book-content-input">内容</label>
                         <textarea id="world-book-content-input" placeholder="在此处输入详细的世界观设定..."></textarea>
