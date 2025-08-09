@@ -50,6 +50,17 @@ body {
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
 
+#chat-list-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 6. 修正模态框的 z-index，确保它在最顶层 */
+.modal {
+    z-index: 1000; /* 提高 z-index 以确保它覆盖所有内容 */
+}
+
+/* ▲▲▲ 替换结束 ▲▲▲ */
+
         #status-bar { position: absolute; top: 0; left: 0; width: 100%; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; z-index: 10; font-size: 14px; box-sizing: border-box; pointer-events: none; }
         #status-bar-time { font-weight: 600; }
         .battery-container { display: flex; align-items: center; gap: 5px; }
@@ -1616,6 +1627,17 @@ body {
     height: 30px;
 }
 
+#settings-preview-area .avatar-with-frame {
+    width: 30px;
+    height: 30px;
+}
+#settings-preview-area .avatar-with-frame .avatar-frame {
+    width: 44px;
+    height: 44px;
+    top: -7px;
+    left: -7px;
+}
+
 #settings-preview-area .message-bubble .timestamp {
     display: none; /* 预览区不需要显示时间戳 */
 }
@@ -1775,6 +1797,69 @@ body {
     font-size: 13px !important;
     opacity: 0.9 !important;
 }
+
+/* ▼▼▼ 请用下面这【一整块】全新的自适应代码，替换掉所有旧的头像相关样式 ▼▼▼ */
+
+/* 1. 头像容器的【默认/无框】状态 */
+.avatar-group {
+    width: 34px;      /* 默认宽度，和头像图片一样宽 */
+    flex-shrink: 0;
+    position: relative;
+    transition: width 0.2s ease; /* 添加一个平滑的宽度变化动画 */
+}
+
+/* 2. 当【有框】时，头像容器自动变宽 */
+.avatar-group.has-frame {
+    width: 42px; /* 变得更宽，为更大的头像图片和框留出空间 */
+}
+
+/* 3. 普通头像（无框时）的样式 */
+.message-bubble .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 20%;
+    object-fit: cover;
+}
+
+/* 4. 带框头像的容器【默认】大小 */
+.avatar-with-frame {
+    position: relative;
+    width: 34px; /* 默认和普通头像一样大 */
+    height: 34px;
+    margin: 0 auto;
+    transition: all 0.2s ease; /* 为大小变化添加动画 */
+}
+
+/* 5. 当【有框】时，带框头像的容器自动【变大】，解决您说的“图小框大”问题！ */
+.avatar-group.has-frame .avatar-with-frame {
+    width: 43px; /* 图片容器变大 */
+    height: 43px;
+}
+
+/* 6. 头像图片本身，永远撑满它的容器 */
+.avatar-with-frame .avatar-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+/* 7. 头像框，永远基于它的父容器居中 */
+.avatar-with-frame .avatar-frame {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    top: -9px;
+    left: -4px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* ▲▲▲ 替换结束 ▲▲▲ */
 
 /* ▼▼▼ 这是新增的样式，用于修正所有头部标题的居中问题 ▼▼▼ */
 .header > span:nth-child(2),
