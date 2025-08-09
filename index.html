@@ -51,7 +51,7 @@ body {
 }
 
 #chat-list-bottom-nav {
-    padding-bottom: env(safe-area-inset-bottom);
+     padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* 6. 修正模态框的 z-index，确保它在最顶层 */
@@ -465,6 +465,93 @@ body {
         #battery-alert-modal.visible .battery-alert-content { transform: scale(1); }
         #battery-alert-image { max-width: 100px; max-height: 100px; margin-bottom: 15px; }
         #battery-alert-text { font-size: 16px; font-weight: 500; color: #333; margin: 0; line-height: 1.4; }
+
+/* === 头像框选择模态框样式 (这是新添加的) === */
+.change-frame-btn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-left: 10px;
+}
+
+#avatar-frame-modal .modal-content {
+    height: 70%; /* 让窗口高一点 */
+}
+
+#avatar-frame-modal .modal-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.frame-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.frame-tab {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+}
+
+.frame-tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.frame-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.frame-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* 每行自动填充，最小70px宽 */
+    gap: 15px;
+}
+
+.frame-item {
+    aspect-ratio: 1 / 1; /* 保持正方形 */
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    background-size: cover;
+    background-position: center;
+    padding: 5px;
+    transition: all 0.2s ease;
+    position: relative; /* 为预览图做准备 */
+}
+
+.frame-item.selected {
+    border-color: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.frame-item .preview-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.frame-item .preview-frame {
+    position: absolute;
+    top: -7px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
 
 /* 这是你要添加的新样式 */
 #font-preview {
@@ -3205,7 +3292,7 @@ body {
 }
 
 .link-share-card {
-    width: 210px; 
+    width: 250px; 
     background-color: #fff;
     border-radius: 10px;
     border: 1px solid #e0e0e0;
@@ -4917,7 +5004,7 @@ input:checked + .slider:before {
                 </div>
             </div>
             <div class="form-group" id="ai-persona-group"><label for="ai-persona">对方人设 (AI Persona)</label><textarea id="ai-persona" rows="3"></textarea></div><div class="form-group" id="ai-avatar-group"><label>对方头像</label><div class="avatar-upload"><img id="ai-avatar-preview"><button onclick="document.getElementById('ai-avatar-input').click()">上传对方头像</button><button id="manage-ai-avatar-library-btn" class="form-button-secondary" style="margin-top:0; padding: 8px 12px; font-size: 14px;">管理头像库</button>
-<button class="change-frame-btn" data-type="ai">更换头像框</button><input class="change-frame-btn" data-type="ai">更换头像框</button><input  type="file" id="ai-avatar-input" accept="image/*"></div></div><div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
+<button class="change-frame-btn" data-type="ai">更换头像框</button><input type="file" id="ai-avatar-input" accept="image/*"></div></div><div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
 
     <!-- 【新增】管理成员按钮 -->
     <button id="manage-members-btn" class="form-button form-button-secondary" style="margin-top: 15px;">管理群成员</button></div>
@@ -5737,7 +5824,7 @@ const DEFAULT_APP_ICONS = {
   { id: 'frame_13', url: 'https://i.postimg.cc/bJDMQVkj/IMG-7112.gif', name: '13' },
     { id: 'frame_14', url: 'https://i.postimg.cc/SNWBTP5S/IMG-7113.gif', name: '14' },
   { id: 'frame_14', url: 'https://i.postimg.cc/jCVMQsKH/IMG-7114.gif', name: '14' },
-  
+
   ];
 
         let currentFrameSelection = { ai: null, my: null };
@@ -7134,24 +7221,39 @@ if (msg.type === 'recalled_message') {
     timestampEl.className = 'timestamp';
     timestampEl.textContent = formatTimestamp(msg.timestamp);
 
-    // ▼▼▼【粘贴这段新代码】▼▼▼
-    let avatarSrc; // 我们现在只需要头像图片，不再需要头像框了
+    let avatarSrc, avatarFrameSrc = '';
+
     if (chat.isGroup) {
         if (isUser) {
             avatarSrc = chat.settings.myAvatar || defaultMyGroupAvatar;
+            avatarFrameSrc = chat.settings.myAvatarFrame || '';
         } else {
             const member = chat.members.find(m => m.originalName === msg.senderName);
             avatarSrc = member ? member.avatar : defaultGroupMemberAvatar;
+            avatarFrameSrc = member ? (member.avatarFrame || '') : '';
         }
     } else {
         if (isUser) {
             avatarSrc = chat.settings.myAvatar || defaultAvatar;
+            avatarFrameSrc = chat.settings.myAvatarFrame || '';
         } else {
             avatarSrc = chat.settings.aiAvatar || defaultAvatar;
+            avatarFrameSrc = chat.settings.aiAvatarFrame || '';
         }
     }
-    // 直接生成最简单的头像HTML，不再有任何和头像框相关的逻辑
-    const avatarHtml = `<img src="${avatarSrc}" class="avatar">`;
+    const hasFrameClass = avatarFrameSrc ? 'has-frame' : '';
+    let avatarHtml;
+    if (avatarFrameSrc) {
+        avatarHtml = `
+            <div class="avatar-with-frame">
+                <img src="${avatarSrc}" class="avatar-img">
+                <img src="${avatarFrameSrc}" class="avatar-frame">
+            </div>
+        `;
+    } else {
+        avatarHtml = `<img src="${avatarSrc}" class="avatar">`;
+    }
+    const avatarGroupHtml = `<div class="avatar-group ${hasFrameClass}">${avatarHtml}</div>`;
     // ▲▲▲【粘贴结束】▲▲▲
 
     let contentHtml;
@@ -9057,6 +9159,93 @@ async function addSongFromLocal(event) {
         function handleBatteryChange(battery) { updateBatteryDisplay(battery); const level = battery.level; if (!battery.charging) { if (level <= 0.4 && lastKnownBatteryLevel > 0.4 && !alertFlags.hasShown40) { showBatteryAlert('https://i.postimg.cc/T2yKJ0DV/40.jpg', '有点饿了，可以去找充电器惹'); alertFlags.hasShown40 = true; } if (level <= 0.2 && lastKnownBatteryLevel > 0.2 && !alertFlags.hasShown20) { showBatteryAlert('https://i.postimg.cc/qB9zbKs9/20.jpg', '赶紧的充电，要饿死了'); alertFlags.hasShown20 = true; } if (level <= 0.1 && lastKnownBatteryLevel > 0.1 && !alertFlags.hasShown10) { showBatteryAlert('https://i.postimg.cc/ThMMVfW4/10.jpg', '已阵亡，还有30秒爆炸'); alertFlags.hasShown10 = true; } } if (level > 0.4) alertFlags.hasShown40 = false; if (level > 0.2) alertFlags.hasShown20 = false; if (level > 0.1) alertFlags.hasShown10 = false; lastKnownBatteryLevel = level; }
 
         async function initBatteryManager() { if ('getBattery' in navigator) { try { const battery = await navigator.getBattery(); lastKnownBatteryLevel = battery.level; handleBatteryChange(battery); battery.addEventListener('levelchange', () => handleBatteryChange(battery)); battery.addEventListener('chargingchange', () => { handleBatteryChange(battery); if (battery.charging) { showBatteryAlert('https://i.postimg.cc/3NDQ0dWG/image.jpg', '窝爱泥，电量吃饱饱'); } }); } catch (err) { console.error("无法获取电池信息:", err); document.querySelector('.battery-text').textContent = 'ᗜωᗜ'; } } else { console.log("浏览器不支持电池状态API。"); document.querySelector('.battery-text').textContent = 'ᗜωᗜ'; } }
+
+        function openFrameSelectorModal(type = 'chat') {
+            if (!state.activeChatId) return;
+            const chat = state.chats[state.activeChatId];
+            editingFrameForMember = (type === 'member');
+            if (editingFrameForMember) {
+                const member = chat.members.find(m => m.id === editingMemberId);
+                if (!member) return;
+                currentFrameSelection.my = member.avatarFrame || '';
+                populateFrameGrids(true, member.avatar, member.avatarFrame);
+            } else {
+                currentFrameSelection.ai = chat.settings.aiAvatarFrame || '';
+                currentFrameSelection.my = chat.settings.myAvatarFrame || '';
+                populateFrameGrids(false);
+            }
+            frameModal.classList.add('visible');
+        }
+
+        function populateFrameGrids(isForMember = false, memberAvatar = null, memberFrame = null) {
+            const chat = state.chats[state.activeChatId];
+            aiFrameGrid.innerHTML = '';
+            myFrameGrid.innerHTML = '';
+
+            document.querySelector('.frame-tabs').style.display = isForMember ? 'none' : 'flex';
+            aiFrameContent.style.display = 'block';
+            myFrameContent.style.display = 'none';
+            aiFrameTab.classList.add('active');
+            myFrameTab.classList.remove('active');
+
+            if (isForMember) {
+                avatarFrames.forEach(frame => {
+                    const item = createFrameItem(frame, 'my', memberAvatar);
+                    if (frame.url === memberFrame) {
+                        item.classList.add('selected');
+                    }
+                    aiFrameGrid.appendChild(item);
+                });
+            } else {
+                const aiAvatarForPreview = chat.settings.aiAvatar || defaultAvatar;
+                const myAvatarForPreview = chat.settings.myAvatar || (chat.isGroup ? defaultMyGroupAvatar : defaultAvatar);
+                avatarFrames.forEach(frame => {
+                    const aiItem = createFrameItem(frame, 'ai', aiAvatarForPreview);
+                    if (frame.url === currentFrameSelection.ai) aiItem.classList.add('selected');
+                    aiFrameGrid.appendChild(aiItem);
+                    const myItem = createFrameItem(frame, 'my', myAvatarForPreview);
+                    if (frame.url === currentFrameSelection.my) myItem.classList.add('selected');
+                    myFrameGrid.appendChild(myItem);
+                });
+            }
+        }
+
+        function createFrameItem(frame, type, previewAvatarSrc) {
+            const item = document.createElement('div');
+            item.className = 'frame-item';
+            item.dataset.frameUrl = frame.url;
+            item.title = frame.name;
+            item.innerHTML = `
+                <img src="${previewAvatarSrc}" class="preview-avatar">
+                ${frame.url ? `<img src="${frame.url}" class="preview-frame">` : ''}
+            `;
+            item.addEventListener('click', () => {
+                currentFrameSelection[type] = frame.url;
+                const grid = type === 'ai' ? aiFrameGrid : myFrameGrid;
+                grid.querySelectorAll('.frame-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+            return item;
+        }
+
+        async function saveSelectedFrames() {
+            if (!state.activeChatId) return;
+            const chat = state.chats[state.activeChatId];
+            if (editingFrameForMember) {
+                const member = chat.members.find(m => m.id === editingMemberId);
+                if (member) {
+                    member.avatarFrame = currentFrameSelection.my;
+                }
+            } else {
+                chat.settings.aiAvatarFrame = currentFrameSelection.ai;
+                chat.settings.myAvatarFrame = currentFrameSelection.my;
+            }
+            await db.chats.put(chat);
+            frameModal.classList.remove('visible');
+            renderChatInterface(state.activeChatId);
+            alert('头像框已保存！');
+            editingFrameForMember = false;
+        }
 
         async function renderAlbumList() {
             const albumGrid = document.getElementById('album-grid-page');
@@ -13391,6 +13580,25 @@ document.getElementById('selection-delete-btn').addEventListener('click', async 
 });
 // ▲▲▲ 替换结束 ▲▲▲
 
+// 为聊天设置里的“更换头像框”按钮添加点击事件
+document.getElementById('chat-settings-modal').addEventListener('click', (e) => {
+if (e.target.classList.contains('change-frame-btn')) {
+    // 'chat' 这个参数是告诉函数，这次是为“我/对方”这对组合更换头像框
+    openFrameSelectorModal('chat');
+}
+});
+
+// 为成员设置里的“更换头像框”按钮添加点击事件
+document.getElementById('member-settings-modal').addEventListener('click', (e) => {
+// 【修正】将 .contents 修改为 .contains
+if (e.target.classList.contains('change-frame-btn')) { 
+    // 'member' 这个参数是告诉函数，这次是为单个群成员更换头像框
+    openFrameSelectorModal('member');
+}
+});
+
+// ▲▲▲ 粘贴结束 ▲▲▲
+
             const fontUrlInput = document.getElementById('font-url-input');
             fontUrlInput.addEventListener('input', () => applyCustomFont(fontUrlInput.value.trim(), true));
             document.getElementById('save-font-btn').addEventListener('click', async () => {
@@ -14277,6 +14485,31 @@ document.getElementById('copy-post-btn').addEventListener('click', copyPostConte
 document.getElementById('cancel-post-action-btn').addEventListener('click', hidePostActions);
 
 // ▲▲▲ 添加结束 ▲▲▲
+
+// ▼▼▼ 将这段【失踪】的事件监听代码，粘贴到 init() 函数的事件监听器区域末尾 ▼▼▼
+
+// 头像框选择模态框的按钮事件
+document.getElementById('save-frame-settings-btn').addEventListener('click', saveSelectedFrames);
+document.getElementById('cancel-frame-settings-btn').addEventListener('click', () => {
+    frameModal.classList.remove('visible');
+    editingFrameForMember = false; // 确保重置状态
+});
+
+// 头像框 Tab 切换事件
+aiFrameTab.addEventListener('click', () => {
+    aiFrameTab.classList.add('active');
+    myFrameTab.classList.remove('active');
+    aiFrameContent.style.display = 'block';
+    myFrameContent.style.display = 'none';
+});
+myFrameTab.addEventListener('click', () => {
+    myFrameTab.classList.add('active');
+    aiFrameTab.classList.remove('active');
+    myFrameContent.style.display = 'block';
+    aiFrameContent.style.display = 'none';
+});
+
+// ▲▲▲ 修复代码粘贴结束 ▲▲▲
 
 // ▼▼▼ 【新增】联系人选择器事件绑定 ▼▼▼
 document.getElementById('cancel-contact-picker-btn').addEventListener('click', () => {
