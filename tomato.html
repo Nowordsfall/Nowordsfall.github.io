@@ -3346,6 +3346,7 @@ body {
     </style>
 </head>
 <body>
+    <audio id="tts-player" style="display: none;"></audio>
         <div id="phone-screen">
             <div id="status-bar">
                 <span id="status-bar-time">12:00</span>
@@ -3462,6 +3463,21 @@ body {
         </p>
     </label>
     <input type="number" id="block-cooldown-input" min="0.1" step="0.1" value="1" style="width: 80px; text-align: center;">
+</div>
+<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+
+<!-- ▼▼▼ 在这里新增TTS设置 ▼▼▼ -->
+<hr style="margin:20px 0; opacity:.3">
+<div class="form-group">
+    <label for="minimax-group-id">Minimax Group ID</label>
+    <input type="text" id="minimax-group-id" placeholder="输入您的 Minimax Group ID...">
+</div>
+<div class="form-group">
+    <label for="minimax-api-key">Minimax 密钥 (TTS API Key)</label>
+    <input type="password" id="minimax-api-key" placeholder="请输入您的 Minimax API Key...">
+    <p style="font-size: 12px; font-weight: normal; color: #999; margin-top: 5px;">
+        用于语音功能。您可以在 <a href="https://www.minimaxi.com/" target="_blank" rel="noopener noreferrer">Minimax官网</a> 获取凭证。
+    </p>
 </div>
 <!-- ▲▲▲ 新增结束 ▲▲▲ -->
 
@@ -3960,7 +3976,19 @@ body {
                 </div>
             </div>
             <div class="form-group" id="ai-persona-group"><label for="ai-persona">对方人设 (AI Persona)</label><textarea id="ai-persona" rows="3"></textarea></div><div class="form-group" id="ai-avatar-group"><label>对方头像</label><div class="avatar-upload"><img id="ai-avatar-preview"><button onclick="document.getElementById('ai-avatar-input').click()">上传对方头像</button><button id="manage-ai-avatar-library-btn" class="form-button-secondary" style="margin-top:0; padding: 8px 12px; font-size: 14px;">管理头像库</button>
-<button class="change-frame-btn" data-type="ai">更换头像框</button><input type="file" id="ai-avatar-input" accept="image/*"></div></div><div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
+<button class="change-frame-btn" data-type="ai">更换头像框</button><input type="file" id="ai-avatar-input" accept="image/*"></div></div>
+
+<!-- ▼▼▼ 在这里新增语音ID设置 ▼▼▼ -->
+<div class="form-group" id="ai-voice-id-group">
+    <label for="ai-voice-id-input">对方语音ID (Voice ID)</label>
+    <input type="text" id="ai-voice-id-input" placeholder="输入克隆或预设的 Minimax Voice ID">
+    <p style="font-size: 12px; font-weight: normal; color: #999; margin-top: 5px;">
+        在 <a href="https://www.minimaxi.com/voice-clone" target="_blank" rel="noopener noreferrer">Minimax官网</a> 克隆或创建声音。
+    </p>
+</div>
+<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+
+<div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
 
     <!-- 【新增】管理成员按钮 -->
     <button id="manage-members-btn" class="form-button form-button-secondary" style="margin-top: 15px;">管理群成员</button></div>
@@ -4017,6 +4045,14 @@ body {
     <div id="member-settings-modal" class="modal"><div class="modal-content"><div class="modal-header"><span>编辑群成员</span></div><div class="modal-body">
     <div class="form-group"><label for="member-name-input">名字</label><input type="text" id="member-name-input"></div>
     <div class="form-group"><label for="member-persona-input">人设</label><textarea id="member-persona-input" rows="4"></textarea></div>
+    
+    <!-- ▼▼▼ 在这里新增语音ID设置 ▼▼▼ -->
+<div class="form-group">
+    <label for="member-voice-id-input">成员语音ID (Voice ID)</label>
+    <input type="text" id="member-voice-id-input" placeholder="输入该成员的 Minimax Voice ID">
+</div>
+<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+ 
     <div class="form-group"><label>头像</label><div class="avatar-upload"><img id="member-avatar-preview"><button onclick="document.getElementById('member-avatar-input').click()">上传头像</button><button class="change-frame-btn" data-type="member">更换头像框</button><input type="file" id="member-avatar-input" accept="image/*"></div></div>
     </div><div class="modal-footer"><button class="cancel" id="cancel-member-settings-btn">取消</button><button class="save" id="save-member-settings-btn">保存</button></div></div></div>
     
@@ -5498,6 +5534,9 @@ function parseAiResponse(content) {
     document.getElementById('background-activity-switch').checked = state.globalSettings.enableBackgroundActivity || false;
     document.getElementById('background-interval-input').value = state.globalSettings.backgroundActivityInterval || 60;
     document.getElementById('block-cooldown-input').value = state.globalSettings.blockCooldownHours || 1;
+    // ...函数末尾...
+    document.getElementById('minimax-group-id').value = state.apiConfig.minimaxGroupId || '';
+    document.getElementById('minimax-api-key').value = state.apiConfig.minimaxApiKey || '';
 }
         window.renderApiSettingsProxy = renderApiSettings;
 
@@ -6567,12 +6606,36 @@ ${contextSummaryForApproval}
             messagesPayload.push({ role: 'system', content: postsContext });
         }
     
-        const endpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model: model, messages: [{ role: 'system', content: systemPrompt }, ...messagesPayload], temperature: 0.8, stream: false })
-        });
+        let finalEndpoint;
+        let fetchOptions;
+
+        if (proxyUrl.includes('googleapis.com')) {
+            const modelName = model.startsWith('models/') ? model.substring(7) : model;
+            finalEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const geminiContents = messagesPayload.map(msg => ({
+                role: msg.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: String(msg.content) }]
+            }));
+            const fullContents = [
+                { role: 'user', parts: [{ text: systemPrompt }] },
+                { role: 'model', parts: [{ text: "好的，我明白了。我会严格遵守以上所有规则和设定，开始对话。" }] }
+            ].concat(geminiContents);
+            const body = {
+                contents: fullContents,
+                safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                generationConfig: { temperature: 0.8 }
+            };
+            fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+        } else {
+            finalEndpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
+            fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: model, messages: [{ role: 'system', content: systemPrompt }, ...messagesPayload], temperature: 0.8, stream: false })
+            };
+        }
+        const response = await fetch(finalEndpoint, fetchOptions);
+
 if (!response.ok) {
     let errorMsg = `API Error: ${response.status}`;
     try {
@@ -6588,7 +6651,19 @@ if (!response.ok) {
     throw new Error(errorMsg);
 }
         const data = await response.json();
-        const aiResponseContent = data.choices[0].message.content;
+        let aiResponseContent = '';
+        if (proxyUrl.includes('googleapis.com')) {
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                aiResponseContent = data.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error(`API返回了非预期的格式或空内容。响应: ${JSON.stringify(data)}`);
+            }
+        } else {
+            if (!data.choices || data.choices.length === 0) {
+                 throw new Error(`API返回了非预期的格式或空内容。响应: ${JSON.stringify(data)}`);
+            }
+            aiResponseContent = data.choices[0].message.content;
+        }
         console.log(`AI '${chat.name}' 的原始回复:`, aiResponseContent);
 
         chat.history = chat.history.filter(msg => !msg.isTemporary);
@@ -7721,16 +7796,30 @@ async function triggerInactiveAiAction(chatId) {
         console.log("正在为后台活动发送API请求，Payload:", JSON.stringify(messagesPayload, null, 2)); // 添加日志，方便调试
 
         // 发送请求
-        const endpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model: model,
-                messages: messagesPayload,
-                temperature: 0.9,
-            })
-        });
+        let finalEndpoint;
+        let fetchOptions;
+        if (proxyUrl.includes('googleapis.com')) {
+            const modelName = model.startsWith('models/') ? model.substring(7) : model;
+            finalEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const geminiContents = messagesPayload.map(msg => ({
+                role: msg.role === 'system' ? 'user' : msg.role, // Map system to user
+                parts: [{ text: String(msg.content) }]
+            }));
+            const body = {
+                contents: geminiContents,
+                safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                generationConfig: { temperature: 0.9 }
+            };
+            fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+        } else {
+            finalEndpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
+            fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: model, messages: messagesPayload, temperature: 0.9 })
+            };
+        }
+        const response = await fetch(finalEndpoint, fetchOptions);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -7738,11 +7827,21 @@ async function triggerInactiveAiAction(chatId) {
         }
         const data = await response.json();
         // 检查是否有有效回复
-        if (!data.choices || data.choices.length === 0 || !data.choices[0].message.content) {
-            console.warn(`API为空回或格式不正确，角色 "${chat.name}" 的本次后台活动跳过。`);
+        let aiResponseContent = '';
+        if (proxyUrl.includes('googleapis.com')) {
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                aiResponseContent = data.candidates[0].content.parts[0].text;
+            }
+        } else {
+            if (data.choices && data.choices.length > 0) {
+                aiResponseContent = data.choices[0].message.content;
+            }
+        }
+        if (!aiResponseContent) {
+            console.warn(`API为空回或格式不正确，角色 "${chat.name}" 的本次后台活动跳过。响应: ${JSON.stringify(data)}`);
             return;
         }
-        const responseArray = parseAiResponse(data.choices[0].message.content);
+        const responseArray = parseAiResponse(aiResponseContent);
         
         // 后续处理AI返回指令的逻辑保持不变...
         for (const action of responseArray) {
@@ -8940,19 +9039,39 @@ ${videoCallState.callHistory.map(h => `${h.role}: ${h.content}`).join('\n')}
         
         try {
             const { proxyUrl, apiKey, model } = state.apiConfig;
-            const endpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [{ role: 'system', content: callSummaryPrompt }],
-                    temperature: 0.5
-                })
-            });
+            let finalEndpoint;
+            let fetchOptions;
+            if (proxyUrl.includes('googleapis.com')) {
+                const modelName = model.startsWith('models/') ? model.substring(7) : model;
+                finalEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const body = {
+                    contents: [{ role: 'user', parts: [{ text: callSummaryPrompt }] }],
+                    safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                    generationConfig: { temperature: 0.5 }
+                };
+                fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+            } else {
+                finalEndpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
+                fetchOptions = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({ model: model, messages: [{ role: 'system', content: callSummaryPrompt }], temperature: 0.5 })
+                };
+            }
+            const response = await fetch(finalEndpoint, fetchOptions);
+
             if (response.ok) {
                 const data = await response.json();
-                const callSummaryText = data.choices[0].message.content;
+                let callSummaryText = '';
+                if (proxyUrl.includes('googleapis.com')) {
+                    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                        callSummaryText = data.candidates[0].content.parts[0].text;
+                    }
+                } else {
+                    if (data.choices && data.choices.length > 0) {
+                        callSummaryText = data.choices[0].message.content;
+                    }
+                }
                 const hiddenSummary = {
                     role: 'system',
                     content: `[系统提示：刚才的视频通话内容摘要：${callSummaryText}]`,
@@ -9157,18 +9276,47 @@ ${videoCallState.preCallContext}
     // --- 修复结束 ---
     
     try {
-        const endpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
-                const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model: model, messages: messagesForApi, temperature: 0.8
-            })
-        });
+        let finalEndpoint;
+        let fetchOptions;
+        if (proxyUrl.includes('googleapis.com')) {
+            const modelName = model.startsWith('models/') ? model.substring(7) : model;
+            finalEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const geminiContents = messagesForApi.map(msg => ({
+                role: msg.role === 'assistant' ? 'model' : (msg.role === 'system' ? 'user' : msg.role), // Map system to user
+                parts: [{ text: String(msg.content) }]
+            }));
+            const body = {
+                contents: geminiContents,
+                safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                generationConfig: { temperature: 0.8 }
+            };
+            fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+        } else {
+            finalEndpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
+            fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: model, messages: messagesForApi, temperature: 0.8 })
+            };
+        }
+        const response = await fetch(finalEndpoint, fetchOptions);
+
         if (!response.ok) throw new Error((await response.json()).error.message);
         
         const data = await response.json();
-        const aiResponse = data.choices[0].message.content;
+        let aiResponse = '';
+        if (proxyUrl.includes('googleapis.com')) {
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                aiResponse = data.candidates[0].content.parts[0].text;
+            } else {
+                 throw new Error(`API返回了非预期的格式或空内容。响应: ${JSON.stringify(data)}`);
+            }
+        } else {
+            if (!data.choices || data.choices.length === 0) {
+                 throw new Error(`API返回了非预期的格式或空内容。响应: ${JSON.stringify(data)}`);
+            }
+            aiResponse = data.choices[0].message.content;
+        }
 
         const connectingElement = callFeed.querySelector('em');
         if (connectingElement) connectingElement.remove();
@@ -9206,6 +9354,23 @@ ${videoCallState.preCallContext}
                 setTimeout(() => speakingAvatar.classList.remove('speaking'), 2000);
             }
         }
+        // ▼▼▼ 在这里新增语音通话逻辑 ▼▼▼
+        if (videoCallState.isGroupCall) {
+            const speechArray = parseAiResponse(aiResponse);
+            speechArray.forEach(turn => {
+                if (turn.speech) {
+                    const speaker = videoCallState.participants.find(p => p.name === turn.name);
+                    if (speaker && speaker.voiceId) {
+                        playTtsAudio(turn.speech, speaker.voiceId);
+                    }
+                }
+            });
+        } else {
+            if (chat.settings.voiceId) {
+                playTtsAudio(aiResponse, chat.settings.voiceId);
+            }
+        }
+        // ▲▲▲ 新增结束 ▲▲▲
         
         callFeed.scrollTop = callFeed.scrollHeight;
 
@@ -9526,16 +9691,27 @@ ${contextSummary}
     ];
 
     try {
-        const endpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model: model,
-                messages: messagesForApi,
-                temperature: 0.9,
-            })
-        });
+        let finalEndpoint;
+        let fetchOptions;
+        if (proxyUrl.includes('googleapis.com')) {
+            const modelName = model.startsWith('models/') ? model.substring(7) : model;
+            finalEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const body = {
+                contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+                safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                generationConfig: { temperature: 0.9 }
+            };
+            fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+        } else {
+            finalEndpoint = buildEndpoint(proxyUrl, "/v1/chat/completions");
+            fetchOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: model, messages: messagesForApi, temperature: 0.9 })
+            };
+        }
+        const response = await fetch(finalEndpoint, fetchOptions);
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(`API 请求失败: ${response.status} - ${errorData.error.message}`);
@@ -9544,7 +9720,19 @@ ${contextSummary}
         const data = await response.json();
         
         // --- 【核心修正：在这里净化AI的回复】 ---
-        let rawContent = data.choices[0].message.content;
+        let rawContent = '';
+        if (proxyUrl.includes('googleapis.com')) {
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                rawContent = data.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error(`API返回了非预期的格式或空内容。响应: ${JSON.stringify(data)}`);
+            }
+        } else {
+             if (!data.choices || data.choices.length === 0) {
+                 throw new Error(`API返回了非预期的格式或空内容。响应: ${JSON.stringify(data)}`);
+            }
+            rawContent = data.choices[0].message.content;
+        }
         // 1. 移除头尾可能存在的 "```json" 和 "```"
         rawContent = rawContent.replace(/^```json\s*/, '').replace(/```$/, '');
         // 2. 移除所有换行符和多余的空格，确保是一个干净的JSON字符串
@@ -10339,6 +10527,80 @@ async function sendUserLinkShare() {
 
 // ▲▲▲ 新函数粘贴结束 ▲▲▲
 
+// ▼▼▼ 【全新】TTS核心功能函数 ▼▼▼
+const ttsPlayer = document.getElementById('tts-player');
+let isTtsPlaying = false;
+let ttsQueue = [];
+
+/**
+ * 根据文本和语音ID，获取Minimax TTS音频并播放
+ * @param {string} text - 要转换为语音的文本
+ * @param {string} voiceId - 在Minimax处的语音ID
+ */
+async function playTtsAudio(text, voiceId) {
+    if (!text || !voiceId) return;
+
+    const { minimaxGroupId, minimaxApiKey } = state.apiConfig;
+    if (!minimaxGroupId || !minimaxApiKey) {
+        console.warn("Minimax Group ID 或 API Key未设置，无法播放语音。");
+        return;
+    }
+
+    ttsQueue.push({ text, voiceId });
+    if (!isTtsPlaying) {
+        processTtsQueue();
+    }
+}
+
+async function processTtsQueue() {
+    if (ttsQueue.length === 0) {
+        isTtsPlaying = false;
+        return;
+    }
+
+    isTtsPlaying = true;
+    const { text, voiceId } = ttsQueue.shift();
+
+    try {
+        const url = `https://api.minimax.chat/v1/text_to_speech?GroupId=${state.apiConfig.minimaxGroupId}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.apiConfig.minimaxApiKey}`
+            },
+            body: JSON.stringify({
+                text: text,
+                voice_id: voiceId,
+                model: "speech-01",
+                speed: 1.0,
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`TTS API 错误: ${response.status} ${await response.text()}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        ttsPlayer.src = audioUrl;
+        ttsPlayer.play();
+        
+        ttsPlayer.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            processTtsQueue();
+        };
+
+    } catch (error) {
+        console.error("播放TTS语音失败:", error);
+        await showCustomAlert("语音播放失败", error.message);
+        isTtsPlaying = false;
+        processTtsQueue();
+    }
+}
+// ▲▲▲ 全新函数结束 ▲▲▲
+
         // ===================================================================
         // 4. 初始化函数 init()
         // ===================================================================
@@ -10492,7 +10754,10 @@ document.getElementById('save-wallpaper-btn').addEventListener('click', async ()
     showScreen('home-screen');
 });
 // ▲▲▲ 替换结束 ▲▲▲
-            document.getElementById('save-api-settings-btn').addEventListener('click', async () => { state.apiConfig.proxyUrl = document.getElementById('proxy-url').value.trim(); state.apiConfig.apiKey = document.getElementById('api-key').value.trim(); state.apiConfig.model = document.getElementById('model-select').value; await db.apiConfig.put(state.apiConfig); 
+            document.getElementById('save-api-settings-btn').addEventListener('click', async () => { state.apiConfig.proxyUrl = document.getElementById('proxy-url').value.trim(); state.apiConfig.apiKey = document.getElementById('api-key').value.trim(); state.apiConfig.model = document.getElementById('model-select').value; 
+            state.apiConfig.minimaxGroupId = document.getElementById('minimax-group-id').value.trim();
+            state.apiConfig.minimaxApiKey = document.getElementById('minimax-api-key').value.trim();
+            await db.apiConfig.put(state.apiConfig); 
 
 // 在 'save-api-settings-btn' 的 click 事件监听器内部
 // await db.apiConfig.put(state.apiConfig); 这行之后
@@ -10586,7 +10851,33 @@ alert('API设置已保存!'); });
             document.getElementById('add-world-book-btn').addEventListener('click', async () => { const name = await showCustomPrompt('创建世界书', '请输入书名'); if (name && name.trim()) { const newBook = { id: 'wb_' + Date.now(), name: name.trim(), content: '' }; await db.worldBooks.add(newBook); state.worldBooks.push(newBook); renderWorldBookScreen(); openWorldBookEditor(newBook.id); } });
             document.getElementById('save-world-book-btn').addEventListener('click', async () => { if (!editingWorldBookId) return; const book = state.worldBooks.find(wb => wb.id === editingWorldBookId); if (book) { const newName = document.getElementById('world-book-name-input').value.trim(); if (!newName) { alert('书名不能为空！'); return; } book.name = newName; book.content = document.getElementById('world-book-content-input').value; await db.worldBooks.put(book); document.getElementById('world-book-editor-title').textContent = newName; editingWorldBookId = null; renderWorldBookScreen(); showScreen('world-book-screen'); } });
 
-            document.getElementById('chat-messages').addEventListener('click', (e) => { const aiImage = e.target.closest('.ai-generated-image'); if (aiImage) { const description = aiImage.dataset.description; if (description) showCustomAlert('照片描述', description); return; } const voiceMessage = e.target.closest('.voice-message-body'); if (voiceMessage) { const text = voiceMessage.dataset.text; if (text) showCustomAlert('语音内容', text); return; } });
+            document.getElementById('chat-messages').addEventListener('click', (e) => { const aiImage = e.target.closest('.ai-generated-image'); if (aiImage) { const description = aiImage.dataset.description; if (description) showCustomAlert('照片描述', description); return; }
+            const voiceMessage = e.target.closest('.voice-message-body');
+            if (voiceMessage) {
+                const text = voiceMessage.dataset.text;
+                const bubble = voiceMessage.closest('.message-bubble');
+                if (!bubble) return;
+                
+                const timestamp = parseInt(bubble.dataset.timestamp);
+                const chat = state.chats[state.activeChatId];
+                const msg = chat.history.find(m => m.timestamp === timestamp);
+                if (!msg) return;
+
+                let voiceId;
+                if (chat.isGroup) {
+                    const member = chat.members.find(m => m.name === msg.senderName);
+                    voiceId = member?.voiceId;
+                } else {
+                    voiceId = chat.settings.voiceId;
+                }
+                
+                if (voiceId) {
+                    playTtsAudio(text, voiceId);
+                } else {
+                    showCustomAlert('语音内容', text); // 若未配置Voice ID，则保持原样
+                }
+                return;
+            } });
             
             const chatSettingsModal = document.getElementById('chat-settings-modal');
             const worldBookSelectBox = document.querySelector('.custom-multiselect .select-box');
@@ -10598,7 +10889,7 @@ function updateWorldBookSelectionDisplay() { const checkedBoxes = worldBookCheck
             window.addEventListener('click', (e) => { if (!document.querySelector('.custom-multiselect').contains(e.target)) { worldBookCheckboxesContainer.classList.remove('visible'); worldBookSelectBox.classList.remove('expanded'); } });
 
 // ▼▼▼ 请用这段【完整、全新的代码】替换旧的 chat-settings-btn 点击事件 ▼▼▼
-document.getElementById('chat-settings-btn').addEventListener('click', async () => {
+    document.getElementById('chat-settings-btn').addEventListener('click', async () => {
     if (!state.activeChatId) return;
     const chat = state.chats[state.activeChatId];
     const isGroup = chat.isGroup;
@@ -10639,7 +10930,10 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
     } else {
         document.getElementById('ai-persona').value = chat.settings.aiPersona;
         document.getElementById('ai-avatar-preview').src = chat.settings.aiAvatar || defaultAvatar;
-        
+        // ▼▼▼ 在这里新增 ▼▼▼
+        document.getElementById('ai-voice-id-input').value = chat.settings.voiceId || '';
+        // ▲▲▲ 新增结束 ▲▲▲
+
         // 【核心修改2】如果是单聊，就加载分组列表到下拉框
         const select = document.getElementById('assign-group-select');
         select.innerHTML = '<option value="">未分组</option>'; // 清空并设置默认选项
@@ -10688,7 +10982,11 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
             function openMemberEditor(memberId) { editingMemberId = memberId; const chat = state.chats[state.activeChatId]; const member = chat.members.find(m => m.id === memberId); document.getElementById('member-name-input').value = member.name; document.getElementById('member-persona-input').value = member.persona; document.getElementById('member-avatar-preview').src = member.avatar; document.getElementById('member-settings-modal').classList.add('visible'); }
 
             document.getElementById('cancel-member-settings-btn').addEventListener('click', () => { document.getElementById('member-settings-modal').classList.remove('visible'); editingMemberId = null; });
-            document.getElementById('save-member-settings-btn').addEventListener('click', () => { if (!editingMemberId) return; const chat = state.chats[state.activeChatId]; const member = chat.members.find(m => m.id === editingMemberId); member.name = document.getElementById('member-name-input').value; member.persona = document.getElementById('member-persona-input').value; member.avatar = document.getElementById('member-avatar-preview').src; renderGroupMemberSettings(chat.members); document.getElementById('member-settings-modal').classList.remove('visible'); });
+            document.getElementById('save-member-settings-btn').addEventListener('click', () => { if (!editingMemberId) return; const chat = state.chats[state.activeChatId]; const member = chat.members.find(m => m.id === editingMemberId); member.name = document.getElementById('member-name-input').value; member.persona = document.getElementById('member-persona-input').value; member.avatar = document.getElementById('member-avatar-preview').src;
+            // ▼▼▼ 在这里新增 ▼▼▼
+            member.voiceId = document.getElementById('member-voice-id-input').value.trim();
+            // ▲▲▲ 新增结束 ▲▲▲
+            renderGroupMemberSettings(chat.members); document.getElementById('member-settings-modal').classList.remove('visible'); });
             document.getElementById('reset-theme-btn').addEventListener('click', () => { document.getElementById('theme-default').checked = true; });
             document.getElementById('cancel-chat-settings-btn').addEventListener('click', () => { chatSettingsModal.classList.remove('visible'); });
 
@@ -10715,6 +11013,9 @@ document.getElementById('save-chat-settings-btn').addEventListener('click', asyn
     } else {
         chat.settings.aiPersona = document.getElementById('ai-persona').value;
         chat.settings.aiAvatar = document.getElementById('ai-avatar-preview').src;
+        // ▼▼▼ 在这里新增 ▼▼▼
+        chat.settings.voiceId = document.getElementById('ai-voice-id-input').value.trim();
+        // ▲▲▲ 新增结束 ▲▲▲
         const selectedGroupId = document.getElementById('assign-group-select').value;
         chat.groupId = selectedGroupId ? parseInt(selectedGroupId) : null;
     }
