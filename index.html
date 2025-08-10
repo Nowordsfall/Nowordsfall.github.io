@@ -3292,7 +3292,7 @@ body {
 }
 
 .link-share-card {
-    width: 250px; 
+    width: 250px;
     background-color: #fff;
     border-radius: 10px;
     border: 1px solid #e0e0e0;
@@ -4309,6 +4309,7 @@ input:checked + .slider:before {
     </style>
 </head>
 <body>
+    <audio id="tts-player" style="display: none;"></audio>
         <div id="phone-screen">
             <div id="status-bar">
                 <span id="status-bar-time">12:00</span>
@@ -4445,6 +4446,21 @@ input:checked + .slider:before {
         </p>
     </label>
     <input type="number" id="block-cooldown-input" min="0.1" step="0.1" value="1" style="width: 80px; text-align: center;">
+</div>
+<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+
+<!-- ▼▼▼ 在这里新增TTS设置 ▼▼▼ -->
+<hr style="margin:20px 0; opacity:.3">
+<div class="form-group">
+    <label for="minimax-group-id">Minimax Group ID</label>
+    <input type="text" id="minimax-group-id" placeholder="输入您的 Minimax Group ID...">
+</div>
+<div class="form-group">
+    <label for="minimax-api-key">Minimax 密钥 (TTS API Key)</label>
+    <input type="password" id="minimax-api-key" placeholder="请输入您的 Minimax API Key...">
+    <p style="font-size: 12px; font-weight: normal; color: #999; margin-top: 5px;">
+        用于语音功能。您可以在 <a href="https://www.minimaxi.com/" target="_blank" rel="noopener noreferrer">Minimax官网</a> 获取凭证。
+    </p>
 </div>
 <!-- ▲▲▲ 新增结束 ▲▲▲ -->
 
@@ -4771,7 +4787,6 @@ input:checked + .slider:before {
                 <button id="music-mode-btn">顺序</button>
             </div>
         </div>
-
     </div>
 </div>
     
@@ -5004,7 +5019,19 @@ input:checked + .slider:before {
                 </div>
             </div>
             <div class="form-group" id="ai-persona-group"><label for="ai-persona">对方人设 (AI Persona)</label><textarea id="ai-persona" rows="3"></textarea></div><div class="form-group" id="ai-avatar-group"><label>对方头像</label><div class="avatar-upload"><img id="ai-avatar-preview"><button onclick="document.getElementById('ai-avatar-input').click()">上传对方头像</button><button id="manage-ai-avatar-library-btn" class="form-button-secondary" style="margin-top:0; padding: 8px 12px; font-size: 14px;">管理头像库</button>
-<button class="change-frame-btn" data-type="ai">更换头像框</button><input type="file" id="ai-avatar-input" accept="image/*"></div></div><div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
+<button class="change-frame-btn" data-type="ai">更换头像框</button><input type="file" id="ai-avatar-input" accept="image/*"></div></div>
+
+<!-- ▼▼▼ 在这里新增语音ID设置 ▼▼▼ -->
+<div class="form-group" id="ai-voice-id-group">
+    <label for="ai-voice-id-input">对方语音ID (Voice ID)</label>
+    <input type="text" id="ai-voice-id-input" placeholder="输入克隆或预设的 Minimax Voice ID">
+    <p style="font-size: 12px; font-weight: normal; color: #999; margin-top: 5px;">
+        在 <a href="https://www.minimaxi.com/voice-clone" target="_blank" rel="noopener noreferrer">Minimax官网</a> 克隆或创建声音。
+    </p>
+</div>
+<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+
+<div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
 
     <!-- 【新增】管理成员按钮 -->
     <button id="manage-members-btn" class="form-button form-button-secondary" style="margin-top: 15px;">管理群成员</button></div>
@@ -5061,6 +5088,14 @@ input:checked + .slider:before {
     <div id="member-settings-modal" class="modal"><div class="modal-content"><div class="modal-header"><span>编辑群成员</span></div><div class="modal-body">
     <div class="form-group"><label for="member-name-input">名字</label><input type="text" id="member-name-input"></div>
     <div class="form-group"><label for="member-persona-input">人设</label><textarea id="member-persona-input" rows="4"></textarea></div>
+    
+    <!-- ▼▼▼ 在这里新增语音ID设置 ▼▼▼ -->
+    <div class="form-group">
+        <label for="member-voice-id-input">成员语音ID (Voice ID)</label>
+        <input type="text" id="member-voice-id-input" placeholder="输入该成员的 Minimax Voice ID">
+    </div>
+    <!-- ▲▲▲ 新增结束 ▲▲▲ -->
+     
     <div class="form-group"><label>头像</label><div class="avatar-upload"><img id="member-avatar-preview"><button onclick="document.getElementById('member-avatar-input').click()">上传头像</button><button class="change-frame-btn" data-type="member">更换头像框</button><input type="file" id="member-avatar-input" accept="image/*"></div></div>
     </div><div class="modal-footer"><button class="cancel" id="cancel-member-settings-btn">取消</button><button class="save" id="save-member-settings-btn">保存</button></div></div></div>
     
@@ -5113,13 +5148,13 @@ input:checked + .slider:before {
 <!-- 头像框选择模态框 (这是新添加的) -->
     <div id="avatar-frame-modal" class="modal">
         <div class="modal-content">
-           <div class="modal-header">
+             <div class="modal-header">
                <span>选择头像框</span>
-           </div>
-           <div class="modal-body">
+            </div>
+            <div class="modal-body">
                 <div class="frame-tabs">
-                   <div id="ai-frame-tab" class="frame-tab active">对方的</div>
-                   <div id="my-frame-tab" class="frame-tab">我的</div>
+                    <div id="ai-frame-tab" class="frame-tab active">对方的</div>
+                    <div id="my-frame-tab" class="frame-tab">我的</div>
                 </div>
                 <div id="ai-frame-content" class="frame-content">
                     <div id="ai-frame-grid" class="frame-grid">
@@ -5131,8 +5166,8 @@ input:checked + .slider:before {
                         <!-- 我的头像框会动态生成在这里 -->
                     </div>
                 </div>
-             </div>
-             <div class="modal-footer">
+            </div>
+            <div class="modal-footer">
                 <button class="cancel" id="cancel-frame-settings-btn">取消</button>
                 <button class="save" id="save-frame-settings-btn">保存</button>
             </div>
@@ -5931,7 +5966,7 @@ function showCustomPrompt(title, placeholder, initialValue = '', type = 'text', 
         // 2. 数据库结构定义
         // ===================================================================
 
-db.version(23).stores({ 
+db.version(20).stores({ 
     chats: '&id, isGroup, groupId', 
     apiConfig: '&id', 
     globalSettings: '&id', 
@@ -6302,47 +6337,47 @@ function displayFilteredFavorites(items) {
             
             // ▲▲▲ 新增/修改的代码结束 ▲▲▲
 
-} else if (item.type === 'chat_message') {
-    const msg = item.content;
-    const chat = state.chats[item.chatId];
-    if (!chat) continue; 
+        } else if (item.type === 'chat_message') {
+            const msg = item.content;
+            const chat = state.chats[item.chatId];
+            if (!chat) continue; 
 
-    sourceText = `来自与 ${chat.name} 的聊天`;
-    const isUser = msg.role === 'user';
-    let senderName, senderAvatar;
+            sourceText = `来自与 ${chat.name} 的聊天`;
+            const isUser = msg.role === 'user';
+            let senderName, senderAvatar;
 
-    if (isUser) {
-        // 用户消息的逻辑保持不变
-        senderName = chat.isGroup ? (chat.settings.myNickname || '我') : '我';
-        senderAvatar = chat.settings.myAvatar || (chat.isGroup ? defaultMyGroupAvatar : defaultAvatar);
-    } else { // AI/成员消息
-         if (chat.isGroup) {
-            // ★★★★★ 这就是唯一的、核心的修改！ ★★★★★
-            // 我们现在使用 originalName 去匹配，而不是旧的 name
-            const member = chat.members.find(m => m.originalName === msg.senderName);
-            // ★★★★★ 修改结束 ★★★★★
+            if (isUser) {
+                // 用户消息的逻辑保持不变
+                senderName = chat.isGroup ? (chat.settings.myNickname || '我') : '我';
+                senderAvatar = chat.settings.myAvatar || (chat.isGroup ? defaultMyGroupAvatar : defaultAvatar);
+            } else { // AI/成员消息
+                 if (chat.isGroup) {
+                    // ★★★★★ 这就是唯一的、核心的修改！ ★★★★★
+                    // 我们现在使用 originalName 去匹配，而不是旧的 name
+                    const member = chat.members.find(m => m.originalName === msg.senderName);
+                    // ★★★★★ 修改结束 ★★★★★
             
-            senderName = msg.senderName;
-            // 因为现在能正确找到 member 对象了，所以也能正确获取到他的头像
-            senderAvatar = member ? member.avatar : defaultGroupMemberAvatar;
-        } else {
-            // 单聊的逻辑保持不变
-            senderName = chat.name;
-            senderAvatar = chat.settings.aiAvatar || defaultAvatar;
-        }
-    }
+                    senderName = msg.senderName;
+                    // 因为现在能正确找到 member 对象了，所以也能正确获取到他的头像
+                    senderAvatar = member ? member.avatar : defaultGroupMemberAvatar;
+                } else {
+                    // 单聊的逻辑保持不变
+                    senderName = chat.name;
+                    senderAvatar = chat.settings.aiAvatar || defaultAvatar;
+                }
+            }
 
-    // 后续拼接 headerHtml 和 contentHtml 的逻辑都保持不变
-    headerHtml = `<img src="${senderAvatar}" class="avatar"><div class="info"><div class="name">${senderName}</div></div>`;
+            // 后续拼接 headerHtml 和 contentHtml 的逻辑都保持不变
+            headerHtml = `<img src="${senderAvatar}" class="avatar"><div class="info"><div class="name">${senderName}</div></div>`;
     
-    if (typeof msg.content === 'string' && STICKER_REGEX.test(msg.content)) {
-        contentHtml = `<img src="${msg.content}" class="sticker-image" style="max-width: 80px; max-height: 80px;">`;
-    } else if (Array.isArray(msg.content) && msg.content[0]?.type === 'image_url') {
-        contentHtml = `<img src="${msg.content[0].image_url.url}" class="chat-image">`;
-    } else {
-        contentHtml = String(msg.content || '').replace(/\n/g, '<br>');
-    }
-}
+            if (typeof msg.content === 'string' && STICKER_REGEX.test(msg.content)) {
+                contentHtml = `<img src="${msg.content}" class="sticker-image" style="max-width: 80px; max-height: 80px;">`;
+            } else if (Array.isArray(msg.content) && msg.content[0]?.type === 'image_url') {
+                contentHtml = `<img src="${msg.content[0].image_url.url}" class="chat-image">`;
+            } else {
+                contentHtml = String(msg.content || '').replace(/\n/g, '<br>');
+            }
+        }
         
         // ▼▼▼ 修改最终的HTML拼接，加入 footerHtml ▼▼▼
         card.innerHTML = `
@@ -11170,7 +11205,25 @@ ${videoCallState.preCallContext}
                 setTimeout(() => speakingAvatar.classList.remove('speaking'), 2000);
             }
         }
-        
+
+        // ▼▼▼ 在这里新增语音通话逻辑 ▼▼▼
+        if (videoCallState.isGroupCall) {
+            const speechArray = parseAiResponse(aiResponse);
+            speechArray.forEach(turn => {
+                if (turn.speech) {
+                    const speaker = videoCallState.participants.find(p => p.name === turn.name);
+                    if (speaker && speaker.voiceId) {
+                        playTtsAudio(turn.speech, speaker.voiceId);
+                    }
+                }
+            });
+        } else {
+            if (chat.settings.voiceId) {
+                playTtsAudio(aiResponse, chat.settings.voiceId);
+            }
+        }
+        // ▲▲▲ 新增结束 ▲▲▲
+
         callFeed.scrollTop = callFeed.scrollHeight;
 
     } catch (error) {
@@ -12318,6 +12371,80 @@ async function sendUserLinkShare() {
 
 // ▲▲▲ 新函数粘贴结束 ▲▲▲
 
+// ▼▼▼ 【全新】TTS核心功能函数 ▼▼▼
+const ttsPlayer = document.getElementById('tts-player');
+let isTtsPlaying = false;
+let ttsQueue = [];
+
+/**
+ * 根据文本和语音ID，获取Minimax TTS音频并播放
+ * @param {string} text - 要转换为语音的文本
+ * @param {string} voiceId - 在Minimax处的语音ID
+ */
+async function playTtsAudio(text, voiceId) {
+    if (!text || !voiceId) return;
+
+    const { minimaxGroupId, minimaxApiKey } = state.apiConfig;
+    if (!minimaxGroupId || !minimaxApiKey) {
+        console.warn("Minimax Group ID 或 API Key未设置，无法播放语音。");
+        return;
+    }
+
+    ttsQueue.push({ text, voiceId });
+    if (!isTtsPlaying) {
+        processTtsQueue();
+    }
+}
+
+async function processTtsQueue() {
+    if (ttsQueue.length === 0) {
+        isTtsPlaying = false;
+        return;
+    }
+
+    isTtsPlaying = true;
+    const { text, voiceId } = ttsQueue.shift();
+
+    try {
+        const url = `https://api.minimax.chat/v1/text_to_speech?GroupId=${state.apiConfig.minimaxGroupId}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.apiConfig.minimaxApiKey}`
+            },
+            body: JSON.stringify({
+                text: text,
+                voice_id: voiceId,
+                model: "speech-01",
+                speed: 1.0,
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`TTS API 错误: ${response.status} ${await response.text()}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        ttsPlayer.src = audioUrl;
+        ttsPlayer.play();
+        
+        ttsPlayer.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            processTtsQueue();
+        };
+
+    } catch (error) {
+        console.error("播放TTS语音失败:", error);
+        await showCustomAlert("语音播放失败", error.message);
+        isTtsPlaying = false;
+        processTtsQueue();
+    }
+}
+// ▲▲▲ 全新函数结束 ▲▲▲
+
 /**
  * 根据AI的视角，过滤出它能看到的动态
  * @param {Array} allPosts - 所有待检查的动态帖子
@@ -13079,6 +13206,8 @@ const newChat = {
     customCss: '', // <--- 新增这行
     linkedWorldBookIds: [], 
     aiAvatarLibrary: [],
+    aiAvatarFrame: '', 
+        myAvatarFrame: '' 
     }, 
     history: [], 
     musicData: { totalTime: 0 } 
@@ -13168,7 +13297,13 @@ document.getElementById('save-wallpaper-btn').addEventListener('click', async ()
     showScreen('home-screen');
 });
 // ▲▲▲ 替换结束 ▲▲▲
-            document.getElementById('save-api-settings-btn').addEventListener('click', async () => { state.apiConfig.proxyUrl = document.getElementById('proxy-url').value.trim(); state.apiConfig.apiKey = document.getElementById('api-key').value.trim(); state.apiConfig.model = document.getElementById('model-select').value; await db.apiConfig.put(state.apiConfig); 
+            document.getElementById('save-api-settings-btn').addEventListener('click', async () => {
+                state.apiConfig.proxyUrl = document.getElementById('proxy-url').value.trim();
+                state.apiConfig.apiKey = document.getElementById('api-key').value.trim();
+                state.apiConfig.model = document.getElementById('model-select').value;
+                state.apiConfig.minimaxGroupId = document.getElementById('minimax-group-id').value.trim();
+                state.apiConfig.minimaxApiKey = document.getElementById('minimax-api-key').value.trim();
+                await db.apiConfig.put(state.apiConfig); 
 
 // 在 'save-api-settings-btn' 的 click 事件监听器内部
 // await db.apiConfig.put(state.apiConfig); 这行之后
@@ -13267,8 +13402,35 @@ alert('API设置已保存!'); });
         // ▲▲▲ 修改结束 ▲▲▲
 
 await db.worldBooks.put(book); document.getElementById('world-book-editor-title').textContent = newName; editingWorldBookId = null; renderWorldBookScreen(); showScreen('world-book-screen'); } });
-            document.getElementById('chat-messages').addEventListener('click', (e) => { const aiImage = e.target.closest('.ai-generated-image'); if (aiImage) { const description = aiImage.dataset.description; if (description) showCustomAlert('照片描述', description); return; }  });
+            document.getElementById('chat-messages').addEventListener('click', (e) => { const aiImage = e.target.closest('.ai-generated-image'); if (aiImage) { const description = aiImage.dataset.description; if (description) showCustomAlert('照片描述', description); return; }
             
+            const voiceMessage = e.target.closest('.voice-message-body');
+            if (voiceMessage) {
+                const text = voiceMessage.dataset.text;
+                const bubble = voiceMessage.closest('.message-bubble');
+                if (!bubble) return;
+                
+                const timestamp = parseInt(bubble.dataset.timestamp);
+                const chat = state.chats[state.activeChatId];
+                const msg = chat.history.find(m => m.timestamp === timestamp);
+                if (!msg) return;
+
+                let voiceId;
+                if (chat.isGroup) {
+                    const member = chat.members.find(m => m.name === msg.senderName);
+                    voiceId = member?.voiceId;
+                } else {
+                    voiceId = chat.settings.voiceId;
+                }
+                
+                if (voiceId) {
+                    playTtsAudio(text, voiceId);
+                } else {
+                    showCustomAlert('语音内容', text); // 若未配置Voice ID，则保持原样
+                }
+                return;
+            } });
+
             const chatSettingsModal = document.getElementById('chat-settings-modal');
             const worldBookSelectBox = document.querySelector('.custom-multiselect .select-box');
             const worldBookCheckboxesContainer = document.getElementById('world-book-checkboxes-container');
@@ -13320,6 +13482,9 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
     } else {
         document.getElementById('ai-persona').value = chat.settings.aiPersona;
         document.getElementById('ai-avatar-preview').src = chat.settings.aiAvatar || defaultAvatar;
+        // ▼▼▼ 在这里新增 ▼▼▼
+        document.getElementById('ai-voice-id-input').value = chat.settings.voiceId || '';
+        // ▲▲▲ 新增结束 ▲▲▲
         
         // 【核心修改2】如果是单聊，就加载分组列表到下拉框
         const select = document.getElementById('assign-group-select');
@@ -13434,6 +13599,9 @@ document.getElementById('save-chat-settings-btn').addEventListener('click', asyn
     } else {
         chat.settings.aiPersona = document.getElementById('ai-persona').value;
         chat.settings.aiAvatar = document.getElementById('ai-avatar-preview').src;
+        // ▼▼▼ 在这里新增 ▼▼▼
+        member.voiceId = document.getElementById('member-voice-id-input').value.trim();
+        // ▲▲▲ 新增结束 ▲▲▲
         const selectedGroupId = document.getElementById('assign-group-select').value;
         chat.groupId = selectedGroupId ? parseInt(selectedGroupId) : null;
     }
