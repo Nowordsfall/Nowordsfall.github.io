@@ -5094,7 +5094,7 @@ input:checked + .slider:before {
     <label for="member-voice-id-input">成员语音ID (Voice ID)</label>
     <input type="text" id="member-voice-id-input" placeholder="输入该成员的 Minimax Voice ID">
 </div>
-<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+    <!-- ▲▲▲ 新增结束 ▲▲▲ -->
      
     <div class="form-group"><label>头像</label><div class="avatar-upload"><img id="member-avatar-preview"><button onclick="document.getElementById('member-avatar-input').click()">上传头像</button><button class="change-frame-btn" data-type="member">更换头像框</button><input type="file" id="member-avatar-input" accept="image/*"></div></div>
     </div><div class="modal-footer"><button class="cancel" id="cancel-member-settings-btn">取消</button><button class="save" id="save-member-settings-btn">保存</button></div></div></div>
@@ -6750,7 +6750,7 @@ function parseAiResponse(content) {
     document.getElementById('background-activity-switch').checked = state.globalSettings.enableBackgroundActivity || false;
     document.getElementById('background-interval-input').value = state.globalSettings.backgroundActivityInterval || 60;
     document.getElementById('block-cooldown-input').value = state.globalSettings.blockCooldownHours || 1;
-// ...函数末尾...
+    // ...函数末尾...
     document.getElementById('minimax-group-id').value = state.apiConfig.minimaxGroupId || '';
     document.getElementById('minimax-api-key').value = state.apiConfig.minimaxApiKey || '';
 }
@@ -8136,7 +8136,7 @@ ${sharedContext}
 // ▼▼▼ 请用这【一整块已修复时间戳】的代码，替换旧的【单人聊天】messagesPayload构建逻辑 ▼▼▼
 messagesPayload = historySlice.map(msg => {
     // 过滤掉不应发送给AI的消息
-    // if (msg.isHidden) return null; // <--- 问题就在这一行！已注释掉以修复BUG
+    // if (msg.isHidden) return null;
     
     // 1. 如果是AI自己的消息，我们将其转换为AI能理解的JSON字符串格式
     if (msg.role === 'assistant') {
@@ -8243,7 +8243,7 @@ if (visiblePosts.length > 0 && !chat.isGroup) {
             messagesPayload.push({ role: 'system', content: postsContext });
         }
             let  isGemini = proxyUrl === GEMINI_API_URL;
-            let geminiConfig = toGeminiRequestData(model,apiKey,systemPrompt, messagesPayload)
+            let geminiConfig = toGeminiRequestData(model, apiKey, systemPrompt, messagesPayload.filter(m => m.role !== 'system'));
             const response = isGemini ? await fetch(geminiConfig.url, geminiConfig.data) :  await fetch(`${proxyUrl}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
@@ -8269,25 +8269,25 @@ if (visiblePosts.length > 0 && !chat.isGroup) {
                 throw new Error(errorMsg);
             }
             const data = await response.json();
+
             // ▼▼▼ 【全新添加】在这里加入针对 Gemini 安全拦截的健壮性检查 ▼▼▼
             if (isGemini && !data.candidates) {
                 console.error("Gemini API 返回了不包含 candidates 的响应，可能是因为安全设置拦截了内容。完整响应:", JSON.stringify(data, null, 2));
-                
                 // 从 promptFeedback 中提取更详细的错误原因
                 const blockReason = data.promptFeedback?.blockReason || '未知原因';
                 const errorMessageContent = `[出错了: Gemini API 返回了无效的响应，可能是因为内容被安全策略拦截 (原因: ${blockReason})。请检查您的角色设定或对话上下文。]`;
-                
+
                 const errorMessage = { 
                     role: 'assistant', 
                     content: errorMessageContent, 
                     timestamp: Date.now() 
-                };
+                };                        
                 if(chat.isGroup) errorMessage.senderName = "系统消息";
-                
+
                 chat.history.push(errorMessage);
                 await db.chats.put(chat);
-                
-                // 检查用户是否还停留在呼叫界面，如果是，则切换回来并显示错误
+
+                // 检查用户是否还停留在呼叫界面，如果是，则切换回来并显示错误                
                 if (document.getElementById('outgoing-call-screen').classList.contains('active')) {
                     showScreen('chat-interface-screen');
                 }
@@ -8297,7 +8297,7 @@ if (visiblePosts.length > 0 && !chat.isGroup) {
                 if (chatHeaderTitle) {
                     chatHeaderTitle.textContent = chat.name;
                     chatHeaderTitle.classList.remove('typing-status');
-                }
+                }                
                 if (typingIndicator) {
                     typingIndicator.style.display = 'none';
                 }
@@ -10886,12 +10886,12 @@ async function handleInitiateCall() {
     
     // 准备并发送系统消息给AI
     const requestMessage = {
-        role: 'system',
+        role: 'user', // 【核心修正1】角色必须是 'user'，代表这是用户发起的事件
         content: chat.isGroup 
             ? `[系统提示：用户 (${chat.settings.myNickname || '我'}) 发起了群视频通话请求。请你们各自决策，并使用 "group_call_response" 指令，设置 "decision" 为 "join" 或 "decline" 来回应。]`
             : `[系统提示：用户向你发起了视频通话请求。请根据你的人设，使用 "video_call_response" 指令，并设置 "decision" 为 "accept" 或 "reject" 来回应。]`,
         timestamp: Date.now(),
-        isHidden: true,
+        // 【核心修正2】必须移除 isHidden: true。这条消息需要被AI看到。
     };
     chat.history.push(requestMessage);
     await db.chats.put(chat);
@@ -11206,18 +11206,58 @@ ${videoCallState.preCallContext}
     // --- 修复结束 ---
     
         try {
-            let  isGemini = proxyUrl === GEMINI_API_URL;
-            let geminiConfig = toGeminiRequestData(model,apiKey,inCallPrompt, messagesForApi)
+            let isGemini = proxyUrl === GEMINI_API_URL;
+            // ▼▼▼ 【最终修复】为通话中的对话构建一个100%符合Gemini API规范的请求 ▼▼▼
+            
+            // 1. systemInstruction 始终是我们的 "inCallPrompt"
+            const systemInstructionForCall = inCallPrompt;
+
+            // 2. contents 始终是我们的通话记录
+            const conversationHistoryForCall = [...videoCallState.callHistory];
+
+            // 3. 【核心】如果通话记录为空（即通话刚开始），我们必须手动添加一个启动回合
+            if (conversationHistoryForCall.length === 0) {
+                const firstTurnContent = videoCallState.initiator === 'user'
+                    ? `*你按下了接听键，视频接通了...*`
+                    : `*对方接听了你的电话，视频接通了...*`;
+                conversationHistoryForCall.push({ role: 'user', content: firstTurnContent });
+            }
+            
+            // 4. 使用我们健壮的 toGeminiRequestData 函数来构建请求
+            let geminiConfig = toGeminiRequestData(model, apiKey, systemInstructionForCall, conversationHistoryForCall);
+            // ▲▲▲ 修复结束 ▲▲▲
+
             const response = isGemini ? await fetch(geminiConfig.url, geminiConfig.data) : await fetch(`${proxyUrl}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
                 body: JSON.stringify({
-                    model: model, messages: messagesForApi, temperature: 0.8
+                    model: model, 
+                    // OpenAI API 需要将 system prompt 合并到 messages
+                    messages: [{ role: 'system', content: systemInstructionForCall }, ...conversationHistoryForCall], 
+                    temperature: 0.8
                 })
             });
+
             if (!response.ok) throw new Error((await response.json()).error.message);
 
             const data = await response.json();
+
+            // 在这里加入针对 Gemini 安全拦截的健壮性检查
+
+            if (isGemini && !data.candidates) {
+                console.error("Gemini API 在通话中返回了无效响应，可能是内容被拦截。响应:", JSON.stringify(data, null, 2));
+                const blockReason = data.promptFeedback?.blockReason || '未知安全原因';
+                const errorMessageContent = `[ERROR: Gemini API 拦截了本次回复 (原因: ${blockReason})。请尝试换个话题继续，或结束通话。]`;
+                const errorBubble = document.createElement('div');
+                errorBubble.className = 'call-message-bubble ai-speech';
+                errorBubble.style.color = '#ff8a80';
+                errorBubble.textContent = errorMessageContent;
+                callFeed.appendChild(errorBubble);
+                callFeed.scrollTop = callFeed.scrollHeight;
+                videoCallState.callHistory.push({ role: 'assistant', content: errorMessageContent });
+                return; 
+            }
+
             const aiResponse = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
 
             const connectingElement = callFeed.querySelector('em');
@@ -13452,7 +13492,7 @@ alert('API设置已保存!'); });
 await db.worldBooks.put(book); document.getElementById('world-book-editor-title').textContent = newName; editingWorldBookId = null; renderWorldBookScreen(); showScreen('world-book-screen'); } });
             document.getElementById('chat-messages').addEventListener('click', (e) => { const aiImage = e.target.closest('.ai-generated-image'); if (aiImage) { const description = aiImage.dataset.description; if (description) showCustomAlert('照片描述', description); return; }
             
-  // ▼▼▼ 请用这个【已修复】的 voiceMessage 点击事件逻辑，替换掉你原来的那一段 ▼▼▼
+// ▼▼▼ 请用这个【已修复】的 voiceMessage 点击事件逻辑，替换掉你原来的那一段 ▼▼▼
         const voiceMessage = e.target.closest('.voice-message-body');
             if (voiceMessage) {
                 // 1. 找到正确的父级元素来获取数据
@@ -13586,7 +13626,7 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
     document.getElementById('chat-settings-modal').classList.add('visible');
 });
 // ▲▲▲ 替换结束 ▲▲▲
-
+            
             function renderGroupMemberSettings(members) { const container = document.getElementById('group-members-settings'); container.innerHTML = ''; members.forEach(member => { const div = document.createElement('div'); div.className = 'member-editor'; div.dataset.memberId = member.id; div.innerHTML = `<img src="${member.avatar}" alt="${member.groupNickname}"><div class="member-name">${member.groupNickname}</div>`; div.addEventListener('click', () => openMemberEditor(member.id)); container.appendChild(div); }); }
             function openMemberEditor(memberId) { editingMemberId = memberId; const chat = state.chats[state.activeChatId]; const member = chat.members.find(m => m.id === memberId); document.getElementById('member-name-input').value = member.groupNickname; document.getElementById('member-persona-input').value = member.persona; document.getElementById('member-avatar-preview').src = member.avatar; document.getElementById('member-settings-modal').classList.add('visible'); }
         
@@ -13600,7 +13640,7 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
             // ▼▼▼ 在这里新增 ▼▼▼
             member.voiceId = document.getElementById('member-voice-id-input').value.trim();
             // ▲▲▲ 新增结束 ▲▲▲
-
+    
     renderGroupMemberSettings(chat.members); 
     document.getElementById('member-settings-modal').classList.remove('visible'); 
 });
@@ -14346,7 +14386,7 @@ postsList.addEventListener('click', async (e) => {
         return;
     }
     // ▼▼▼ 请用下面这段全新的代码，完整替换旧的 “if (sendBtn)” 逻辑块 ▼▼▼
-const sendBtn = target.closest('.comment-send-btn');
+    const sendBtn = target.closest('.comment-send-btn');
 if (sendBtn) {
     const postContainer = sendBtn.closest('.qzone-post-container');
     if (!postContainer) return;
