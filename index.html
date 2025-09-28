@@ -4449,20 +4449,48 @@ input:checked + .slider:before {
 </div>
 <!-- ▲▲▲ 新增结束 ▲▲▲ -->
 
-<!-- ▼▼▼ 在这里新增TTS设置 ▼▼▼ -->
+<!-- ▼▼▼ 【全新】通用 TTS API 设置 (V2 - Minimax Pro Compatible) ▼▼▼ -->
 <hr style="margin:20px 0; opacity:.3">
+<h3 style="margin-bottom: 15px; color: var(--text-primary);">语音合成 (TTS) 设置</h3>
+
 <div class="form-group">
+    <label for="tts-provider-select">TTS 服务商</label>
+    <select id="tts-provider-select">
+        <option value="minimax_pro">Minimax (New API)</option>
+        <option value="elevenlabs">ElevenLabs</option>
+        <option value="voicv">Voicv</option> <!-- 新增此行 -->
+        <option value="openai">OpenAI</option>
+        <option value="custom">Custom (OpenAI-compatible)</option>
+    </select>
+</div>
+
+<!-- Minimax-specific Group ID field -->
+<div class="form-group" id="minimax-group-id-group">
     <label for="minimax-group-id">Minimax Group ID</label>
-    <input type="text" id="minimax-group-id" placeholder="输入您的 Minimax Group ID...">
+    <input type="text" id="minimax-group-id" placeholder="输入 Minimax Group ID...">
 </div>
+
+<div class="form-group" id="custom-tts-url-group" style="display: none;">
+    <label for="custom-tts-url">Custom Provider Full URL</label>
+    <input type="text" id="custom-tts-url" placeholder="输入完整的 TTS 端点, 例如: https://api.duckonline.site">
+</div>
+
 <div class="form-group">
-    <label for="minimax-api-key">Minimax 密钥 (TTS API Key)</label>
-    <input type="password" id="minimax-api-key" placeholder="请输入您的 Minimax API Key...">
-    <p style="font-size: 12px; font-weight: normal; color: #999; margin-top: 5px;">
-        用于语音功能。您可以在 <a href="https://www.minimaxi.com/" target="_blank" rel="noopener noreferrer">Minimax官网</a> 获取凭证。
-    </p>
+    <label for="tts-api-key">TTS Provider API Key</label>
+    <input type="password" id="tts-api-key" placeholder="输入服务商提供的API密钥...">
 </div>
-<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+
+<div class="form-group">
+    <label for="tts-model-input">语音合成模型 (TTS Model)</label>
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="tts-model-input" placeholder="手动输入或点击拉取..." style="flex-grow: 1;">
+        <button id="fetch-tts-models-btn" class="form-button-secondary" style="margin-top: 0; padding: 12px;">拉取</button>
+    </div>
+    <!-- 【全新】用于显示拉取到的模型列表 -->
+    <div id="fetched-tts-models-list" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+</div>
+
+<!-- ▲▲▲ TTS 设置结束 ▲▲▲ -->
 
 <button class="form-button" id="save-api-settings-btn">保存设置</button>
 			<hr style="margin:20px 0; opacity:.3">
@@ -5021,15 +5049,56 @@ input:checked + .slider:before {
             <div class="form-group" id="ai-persona-group"><label for="ai-persona">对方人设 (AI Persona)</label><textarea id="ai-persona" rows="3"></textarea></div><div class="form-group" id="ai-avatar-group"><label>对方头像</label><div class="avatar-upload"><img id="ai-avatar-preview"><button onclick="document.getElementById('ai-avatar-input').click()">上传对方头像</button><button id="manage-ai-avatar-library-btn" class="form-button-secondary" style="margin-top:0; padding: 8px 12px; font-size: 14px;">管理头像库</button>
 <button class="change-frame-btn" data-type="ai">更换头像框</button><input type="file" id="ai-avatar-input" accept="image/*"></div></div>
 
-<!-- ▼▼▼ 在这里新增语音ID设置 ▼▼▼ -->
-<div class="form-group" id="ai-voice-id-group">
+<!-- ▼▼▼ 【V2 - 终极版】动态语音参数设置 ▼▼▼ -->
+<div class="form-group" id="ai-voice-params-group">
     <label for="ai-voice-id-input">对方语音ID (Voice ID)</label>
-    <input type="text" id="ai-voice-id-input" placeholder="输入克隆或预设的 Minimax Voice ID">
+    <input type="text" id="ai-voice-id-input" list="voice-id-history" placeholder="输入或从历史记录中选择 Voice ID">
+    <datalist id="voice-id-history"></datalist>
     <p style="font-size: 12px; font-weight: normal; color: #999; margin-top: 5px;">
-        在 <a href="https://www.minimaxi.com/voice-clone" target="_blank" rel="noopener noreferrer">Minimax官网</a> 克隆或创建声音。
+        这是最重要的参数，用于指定音色。
     </p>
 </div>
-<!-- ▲▲▲ 新增结束 ▲▲▲ -->
+
+<!-- ElevenLabs 专用设置 -->
+<div id="elevenlabs-voice-settings" style="display: none; border-left: 3px solid #1976D2; padding-left: 15px; margin-left: -15px;">
+    <div class="form-group">
+        <label for="el-stability">Stability (0.0 - 1.0)</label>
+        <input type="number" id="el-stability" min="0" max="1" step="0.05" placeholder="留空使用默认值">
+    </div>
+    <div class="form-group">
+        <label for="el-similarity">Similarity Boost (0.0 - 1.0)</label>
+        <input type="number" id="el-similarity" min="0" max="1" step="0.05" placeholder="留空使用默认值">
+    </div>
+    <div class="form-group">
+        <label for="el-style">Style Exaggeration (0.0 - 1.0)</label>
+        <input type="number" id="el-style" min="0" max="1" step="0.05" placeholder="留空使用默认值">
+    </div>
+    <div class="form-group">
+        <label for="el-speed">Speed (0.5 - 2.0)</label>
+        <input type="number" id="el-speed" min="0.5" max="2.0" step="0.1" placeholder="留空使用默认值 (1.0)">
+    </div>
+    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+        <label for="el-speaker-boost" style="margin-bottom: 0;">Use Speaker Boost</label>
+        <input type="checkbox" id="el-speaker-boost" style="width: auto; height: 20px;">
+    </div>
+</div>
+
+<!-- Minimax 专用设置 -->
+<div id="minimax-voice-settings" style="display: none; border-left: 3px solid #4CAF50; padding-left: 15px; margin-left: -15px;">
+    <div class="form-group">
+        <label for="mm-speed">Speed (0.5 - 2.0)</label>
+        <input type="number" id="mm-speed" min="0.5" max="2.0" step="0.1" placeholder="留空使用默认值 (1.0)">
+    </div>
+    <div class="form-group">
+        <label for="mm-vol">Volume (0.1 - 10.0)</label>
+        <input type="number" id="mm-vol" min="0.1" max="10.0" step="0.1" placeholder="留空使用默认值 (1.0)">
+    </div>
+    <div class="form-group">
+        <label for="mm-pitch">Pitch (-12 - 12)</label>
+        <input type="number" id="mm-pitch" min="-12" max="12" step="1" placeholder="留空使用默认值 (0)">
+    </div>
+</div>
+<!-- ▲▲▲ 语音参数设置结束 ▲▲▲ -->
 
 <div class="form-group" id="my-persona-group"><label for="my-persona">我的人设 (My Persona)</label><textarea id="my-persona" rows="3"></textarea></div><div class="form-group" id="my-avatar-group"><label>我的头像</label><div class="avatar-upload"><img id="my-avatar-preview"><button onclick="document.getElementById('my-avatar-input').click()">上传我的头像</button><button class="change-frame-btn" data-type="my">更换头像框</button><button id="open-persona-library-btn">预设</button><input type="file" id="my-avatar-input" accept="image/*"></div></div><div class="form-group" id="group-members-group"><label>群成员人设</label><div id="group-members-settings"></div>
 
@@ -5094,7 +5163,7 @@ input:checked + .slider:before {
     <label for="member-voice-id-input">成员语音ID (Voice ID)</label>
     <input type="text" id="member-voice-id-input" placeholder="输入该成员的 Minimax Voice ID">
 </div>
-    <!-- ▲▲▲ 新增结束 ▲▲▲ -->
+<!-- ▲▲▲ 新增结束 ▲▲▲ -->
      
     <div class="form-group"><label>头像</label><div class="avatar-upload"><img id="member-avatar-preview"><button onclick="document.getElementById('member-avatar-input').click()">上传头像</button><button class="change-frame-btn" data-type="member">更换头像框</button><input type="file" id="member-avatar-input" accept="image/*"></div></div>
     </div><div class="modal-footer"><button class="cancel" id="cancel-member-settings-btn">取消</button><button class="save" id="save-member-settings-btn">保存</button></div></div></div>
@@ -5621,6 +5690,15 @@ input:checked + .slider:before {
 
 <script>
 
+    // ▼▼▼ 在这里新增 ▼▼▼
+const TTS_PROVIDER_URLS = {
+    elevenlabs: "https://api.elevenlabs.io/v1",
+    openai: "https://api.openai.com/v1",
+    voicv: "https://api.voicv.com/v1" // 新增此行
+};
+const MINIMAX_PRO_TTS_URL = 'https://api.minimaxi.com/v1/t2a_v2';
+// ▲▲▲ 新增结束 ▲▲▲
+
         const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
     // gemini如果是多个密钥, 那么随机获取一个
     function getRandomValue(str) {
@@ -5750,7 +5828,14 @@ const myFrameGrid = document.getElementById('my-frame-grid');
         const defaultGroupMemberAvatar = 'https://i.postimg.cc/VkQfgzGJ/1.jpg';
         const defaultGroupAvatar = 'https://i.postimg.cc/gc3QYCDy/1-NINE7-Five.jpg';
         let notificationTimeout;
-
+// ▼▼▼ 在这里新增 ▼▼▼
+const MINIMAX_TTS_MODELS = [
+    "speech-01",
+    "speech-02",
+    "speech-02-turbo",
+    "speech-02-hd"
+];
+// ▲▲▲ 新增结束 ▲▲▲
 // ▼▼▼ 在JS顶部，变量定义区，添加这个新常量 ▼▼▼
 const DEFAULT_APP_ICONS = {
     'world-book': 'https://i.postimg.cc/HWf1JKzn/IMG-6435.jpg',
@@ -6750,9 +6835,29 @@ function parseAiResponse(content) {
     document.getElementById('background-activity-switch').checked = state.globalSettings.enableBackgroundActivity || false;
     document.getElementById('background-interval-input').value = state.globalSettings.backgroundActivityInterval || 60;
     document.getElementById('block-cooldown-input').value = state.globalSettings.blockCooldownHours || 1;
-    // ...函数末尾...
+// ...函数末尾...
+    // --- 【全新】加载通用 TTS 设置 ---
+    const providerSelect = document.getElementById('tts-provider-select');
+    const customUrlGroup = document.getElementById('custom-tts-url-group');
+    const minimaxGroup = document.getElementById('minimax-group-id-group');
+
+    // 1. 设置服务商下拉框的选中值
+    providerSelect.value = state.apiConfig.ttsProvider || 'minimax_pro'; // 默认选中 Minimax
+
+    // 2. 【核心】根据当前选中的服务商，动态显示或隐藏特定的输入框
+    const currentProvider = providerSelect.value;
+    minimaxGroup.style.display = currentProvider === 'minimax_pro' ? 'block' : 'none';
+    customUrlGroup.style.display = currentProvider === 'custom' ? 'block' : 'none';
+
+    // 3. 填充所有 TTS 相关的输入框的值
     document.getElementById('minimax-group-id').value = state.apiConfig.minimaxGroupId || '';
-    document.getElementById('minimax-api-key').value = state.apiConfig.minimaxApiKey || '';
+    document.getElementById('custom-tts-url').value = state.apiConfig.customTtsUrl || '';
+    document.getElementById('tts-api-key').value = state.apiConfig.ttsApiKey || '';
+    document.getElementById('tts-model-input').value = state.apiConfig.ttsModel || '';
+    
+    
+    // 4. 清空上次拉取的模型列表，确保界面干净
+    document.getElementById('fetched-tts-models-list').innerHTML = '';
 }
         window.renderApiSettingsProxy = renderApiSettings;
 
@@ -7616,7 +7721,7 @@ if (msg.quote) {
 //    将构建好的 quoteHtml (如果存在) 和 contentHtml 组合起来
     // --- 【最终正确结构】将头像和内容都放回气泡内部 ---
     // ▼▼▼ 修正后的代码行 ▼▼▼
-bubble.innerHTML = `${avatarGroupHtml}<div class="content">${contentHtml}</div>`;
+bubble.innerHTML = `${avatarGroupHtml}<div class="content">${quoteHtml}${contentHtml}</div>`;
 // ▲▲▲ 修正后的代码行 ▲▲▲
     
     // --- 【最终正确结构】将完整的“气泡”和“时间戳”放入容器 ---
@@ -7870,6 +7975,7 @@ ${contextSummary || "（无有效对话记录）"}
         const maxMemory = parseInt(chat.settings.maxMemory) || 10;
         const historySlice = chat.history.slice(-maxMemory);
 
+
         // --- ▼▼▼ 全新添加的时间感知代码 ▼▼▼ ---
         let timeContext = `\n- **当前时间**: ${currentTime}`;
         const lastAiMessage = historySlice.filter(m => m.role === 'assistant' && !m.isHidden).slice(-1)[0];
@@ -8051,11 +8157,11 @@ ${chat.settings.aiPersona}
 1. **【【【输出格式】】】**: 你的回复【必须】是一个JSON数组格式的字符串。数组中的【每一个元素都必须是一个带有type字段的JSON对象】。
 2. **对话节奏**: 模拟真人的聊天习惯，你可以一次性生成多条短消息。每次要回复至少3-8条消息！！！
 并且不能一直要求和用户见面，这是线上聊天，决不允许出现或者发展为线下剧情！！
-4.  **情景感知**: 你需要感知当前的时间(${currentTime})、我们正在一起听的歌、以及你的人设和世界观。
+3.  **情景感知**: 你需要感知当前的时间(${currentTime})、我们正在一起听的歌、以及你的人设和世界观。
     - **当我们在“一起听歌”时**，你会知道当前播放的歌曲和整个播放列表。你可以根据对话内容或氛围，【主动切换】到播放列表中的另一首歌。
-5.  **【新】更新状态**: 你可以在对话中【自然地】改变你的状态。比如，聊到一半你可能会说“我先去洗个澡”，然后更新你的状态。
-6.  **【【【最终手段】】】**: 只有在对话让你的角色感到不适、被冒犯或关系破裂时，你才可以使用 \`block_user\` 指令。这是一个非常严肃的操作，会中断你们的对话。
-7. **后台行为**: 你有几率在回复聊天内容的同时，执行一些“后台”操作来表现你的独立生活（发动态、评论、点赞）。
+4.  **【新】更新状态**: 你可以在对话中【自然地】改变你的状态。比如，聊到一半你可能会说“我先去洗个澡”，然后更新你的状态。
+5.  **【【【最终手段】】】**: 只有在对话让你的角色感到不适、被冒犯或关系破裂时，你才可以使用 \`block_user\` 指令。这是一个非常严肃的操作，会中断你们的对话。
+6. **后台行为**: 你有几率在回复聊天内容的同时，执行一些“后台”操作来表现你的独立生活（发动态、评论、点赞）。
 # 你的头像库
 - 你可以根据对话内容或你的心情，从下面的头像库中选择一个新头像来更换。
 - **可用头像列表 (请从以下名称中选择一个)**:
@@ -8072,7 +8178,7 @@ ${chat.settings.aiAvatarLibrary && chat.settings.aiAvatarLibrary.length > 0
 - **发送文本**: \`{"type": "text", "content": "你好呀！"}\`
 - **发送表情**: \`{"type": "sticker", "url": "https://...表情URL...", "meaning": "(可选)表情的含义"}\`
 - **发送图片**: \`{"type": "ai_image", "description": "图片的详细文字描述..."}\`
-- **发送语音**: \`{"type": "voice_message", "content": "语音的文字内容..."}\`
+- **发送语音**: \`{"type": "voice_message", "content": "语音的文字内容..."}\` （使用[audio tags]来表示动作或语气，如：[laughs], [smooch], [sighs], [exhales], [sarcastic], [snorts], [sings] )
 - **发起转账**: \`{"type": "transfer", "amount": 5.20, "note": "一点心意"}\`
 - **发起外卖请求**: \`{"type": "waimai_request", "productInfo": "一杯咖啡", "amount": 25}\`
 - **回应外卖-同意**: \`{"type": "waimai_response", "status": "paid", "for_timestamp": 1688888888888}\`
@@ -8136,7 +8242,7 @@ ${sharedContext}
 // ▼▼▼ 请用这【一整块已修复时间戳】的代码，替换旧的【单人聊天】messagesPayload构建逻辑 ▼▼▼
 messagesPayload = historySlice.map(msg => {
     // 过滤掉不应发送给AI的消息
-    // if (msg.isHidden) return null;
+    if (msg.isHidden) return null;
     
     // 1. 如果是AI自己的消息，我们将其转换为AI能理解的JSON字符串格式
     if (msg.role === 'assistant') {
@@ -8243,7 +8349,7 @@ if (visiblePosts.length > 0 && !chat.isGroup) {
             messagesPayload.push({ role: 'system', content: postsContext });
         }
             let  isGemini = proxyUrl === GEMINI_API_URL;
-            let geminiConfig = toGeminiRequestData(model, apiKey, systemPrompt, messagesPayload.filter(m => m.role !== 'system'));
+            let geminiConfig = toGeminiRequestData(model,apiKey,systemPrompt, messagesPayload)
             const response = isGemini ? await fetch(geminiConfig.url, geminiConfig.data) :  await fetch(`${proxyUrl}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
@@ -8269,43 +8375,6 @@ if (visiblePosts.length > 0 && !chat.isGroup) {
                 throw new Error(errorMsg);
             }
             const data = await response.json();
-
-            // ▼▼▼ 【全新添加】在这里加入针对 Gemini 安全拦截的健壮性检查 ▼▼▼
-            if (isGemini && !data.candidates) {
-                console.error("Gemini API 返回了不包含 candidates 的响应，可能是因为安全设置拦截了内容。完整响应:", JSON.stringify(data, null, 2));
-                // 从 promptFeedback 中提取更详细的错误原因
-                const blockReason = data.promptFeedback?.blockReason || '未知原因';
-                const errorMessageContent = `[出错了: Gemini API 返回了无效的响应，可能是因为内容被安全策略拦截 (原因: ${blockReason})。请检查您的角色设定或对话上下文。]`;
-
-                const errorMessage = { 
-                    role: 'assistant', 
-                    content: errorMessageContent, 
-                    timestamp: Date.now() 
-                };                        
-                if(chat.isGroup) errorMessage.senderName = "系统消息";
-
-                chat.history.push(errorMessage);
-                await db.chats.put(chat);
-
-                // 检查用户是否还停留在呼叫界面，如果是，则切换回来并显示错误                
-                if (document.getElementById('outgoing-call-screen').classList.contains('active')) {
-                    showScreen('chat-interface-screen');
-                }
-                renderChatInterface(chatId); // 在UI上显示错误
-                
-                // 别忘了重置正在输入的动画
-                if (chatHeaderTitle) {
-                    chatHeaderTitle.textContent = chat.name;
-                    chatHeaderTitle.classList.remove('typing-status');
-                }                
-                if (typingIndicator) {
-                    typingIndicator.style.display = 'none';
-                }
-                
-                return; // 提前退出函数，不再执行后续逻辑
-            }
-            // ▲▲▲ 新增代码结束 ▲▲▲
-
             const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
             console.log(`AI '${chat.name}' 的原始回复:`, aiResponseContent);
 
@@ -9634,16 +9703,16 @@ async function triggerInactiveAiAction(chatId) {
     }
 
     // ▼▼▼ 在这里添加下面的代码 ▼▼▼
-    let worldBookContent = '';
-    if (chat.settings.linkedWorldBookIds && chat.settings.linkedWorldBookIds.length > 0) {
-        const linkedContents = chat.settings.linkedWorldBookIds.map(bookId => {
-            const worldBook = state.worldBooks.find(wb => wb.id === bookId);
-            return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
-        }).filter(Boolean).join('');
-        if (linkedContents) {
-            worldBookContent = `\n\n# 核心世界观设定 (你必须严格遵守)\n${linkedContents}\n`;
-        }
-    }
+//    let worldBookContent = '';
+//    if (chat.settings.linkedWorldBookIds && chat.settings.linkedWorldBookIds.length > 0) {
+//        const linkedContents = chat.settings.linkedWorldBookIds.map(bookId => {
+//            const worldBook = state.worldBooks.find(wb => wb.id === bookId);
+//            return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
+//        }).filter(Boolean).join('');
+//        if (linkedContents) {
+//            worldBookContent = `\n\n# 核心世界观设定 (你必须严格遵守)\n${linkedContents}\n`;
+//        }
+//    }    已注释掉注入世界书节省prompt
     // ▲▲▲ 添加结束 ▲▲▲
 
     const systemPrompt = `
@@ -9666,7 +9735,7 @@ async function triggerInactiveAiAction(chatId) {
 
 # 供你决策的参考信息：
 -   **你的角色设定**: ${chat.settings.aiPersona}
-${worldBookContent} // <--【核心】在这里注入世界书内容
+\${worldBookContent} // <--【核心】在这里注入世界书内容(已注释掉节省prompt)
 -   **当前时间**: ${currentTime}
 -   **你们最后的对话摘要**: ${recentContextSummary}
 -   **【重要】最近的动态列表**: 这个列表会标注 **[你已点赞]** 或 **[你已评论]**。请**优先**与你**尚未互动过**的动态进行交流。`;
@@ -11002,6 +11071,11 @@ if (chat.isGroup && summaryMessage.role === 'assistant') {
     
     // 5. 清理和重置状态 (这部分逻辑不变)
     clearInterval(callTimerInterval);
+    // ▼▼▼ 在这里添加全新的代码 ▼▼▼
+ttsQueue = []; // 1. 清空语音播放队列
+ttsPlayer.pause(); // 2. 立刻停止当前可能正在播放的声音
+isTtsPlaying = false; // 3. 【最关键】告诉“调度员”放下牌子，恢复空闲状态
+// ▲▲▲ 添加结束 ▲▲▲
     callTimerInterval = null;
     videoCallState = { isActive: false, isAwaitingResponse: false, isGroupCall: false, activeChatId: null, initiator: null, startTime: null, participants: [], isUserParticipating: true, callHistory: [], preCallContext: "" };
     
@@ -11117,6 +11191,8 @@ function hideIncomingCallModal() {
     document.getElementById('incoming-call-modal').classList.remove('visible');
 }
 
+// ▼▼▼ 请用这【一整块代码】完整替换掉您文件中旧的 triggerAiInCallAction 函数 ▼▼▼
+
 async function triggerAiInCallAction(userInput = null) {
     if (!videoCallState.isActive) return;
 
@@ -11125,20 +11201,17 @@ async function triggerAiInCallAction(userInput = null) {
     const callFeed = document.getElementById('video-call-main');
     const userNickname = chat.settings.myNickname || '我';
 
-    // ▼▼▼ 在这里添加世界书读取逻辑 ▼▼▼
-    let worldBookContent = '';
-    if (chat.settings.linkedWorldBookIds && chat.settings.linkedWorldBookIds.length > 0) {
-        const linkedContents = chat.settings.linkedWorldBookIds.map(bookId => {
-            const worldBook = state.worldBooks.find(wb => wb.id === bookId);
-            return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
-        }).filter(Boolean).join('');
-        if (linkedContents) {
-            worldBookContent = `\n\n# 核心世界观设定 (你必须严格遵守)\n${linkedContents}\n`;
-        }
-    }
-    // ▲▲▲ 添加结束 ▲▲▲
+//    let worldBookContent = '';
+//    if (chat.settings.linkedWorldBookIds && chat.settings.linkedWorldBookIds.length > 0) {
+//        const linkedContents = chat.settings.linkedWorldBookIds.map(bookId => {
+//            const worldBook = state.worldBooks.find(wb => wb.id === bookId);
+//            return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
+//        }).filter(Boolean).join('');
+//        if (linkedContents) {
+//            worldBookContent = `\n\n# 核心世界观设定 (你必须严格遵守)\n${linkedContents}\n`;
+//        }
+//    }    已注释掉注入世界书节省prompt
 
-    // 1. 如果用户有输入，先渲染并存入通话历史
     if (userInput && videoCallState.isUserParticipating) {
         const userBubble = document.createElement('div');
         userBubble.className = 'call-message-bubble user-speech';
@@ -11148,10 +11221,9 @@ async function triggerAiInCallAction(userInput = null) {
         videoCallState.callHistory.push({ role: 'user', content: userInput });
     }
 
-    // 2. 构建全新的、包含完整上下文的 System Prompt
     let inCallPrompt;
     if (videoCallState.isGroupCall) {
-        const participantNames = videoCallState.participants.map(p => p.name);
+        const participantNames = videoCallState.participants.map(p => p.originalName);
         if(videoCallState.isUserParticipating) {
             participantNames.unshift(userNickname);
         }
@@ -11169,7 +11241,7 @@ async function triggerAiInCallAction(userInput = null) {
 ${videoCallState.preCallContext}
 **当前参与者**: ${participantNames.join('、 ')}。
 **通话刚刚开始...**
-${worldBookContent} // <-- 【核心】注入世界书
+\${worldBookContent}    已注释掉节省prompt
 现在，请根据【通话前摘要】和下面的【通话实时记录】，继续进行对话。
 `;
     } else { 
@@ -11181,7 +11253,13 @@ ${worldBookContent} // <-- 【核心】注入世界书
 你现在是一个场景描述引擎。你的任务是扮演 ${chat.name} (${chat.settings.aiPersona})，并以【第三人称旁观视角】来描述TA在视频通话中的所有动作和语言。
 # 核心规则
 1.  **【【【视角铁律】】】**: 你的回复【绝对不能】使用第一人称“我”。必须使用第三人称，如“他”、“她”、或直接使用角色名“${chat.name}”。
-2.  **格式**: 你的回复【必须】是一段描述性的文本。
+2.  **格式**: 你的回复【必须】是一段描述性的文本。All spoken words must be enclosed in "double quotation marks"
+        spoken words中使用方括号 […] 插入audio tags，例如 [whispers], [laughs], [excited], [sighs], [strong British accent] 等。
+        标签简短（1-3 词），位置在需要情绪变换／动作／声音效果前。
+        标签可组合（如 [excited][laughs]），但不要过多以免语音不稳定。
+        使用恰当的标点（省略号 …、破折号 —、感叹号、逗号）来控制节奏。
+        可以加短暂停顿 <break time="1s" /> 或省略号来创造 dramatic effect。
+        示例：“[whispers] I wasn’t sure I’d ever see you again… [sighs] But here you are.”
 # 当前情景
 你正在和用户（${userNickname}，人设: ${chat.settings.myPersona}）进行视频通话。
 **${openingContext}**
@@ -11191,95 +11269,84 @@ ${videoCallState.preCallContext}
 `;
     }
     
-    // 3. 构建发送给API的 messages 数组
     const messagesForApi = [
         { role: 'system', content: inCallPrompt },
-        // 将已有的通话历史加进去
         ...videoCallState.callHistory.map(h => ({ role: h.role, content: h.content }))
     ];
 
-    // --- 【核心修复：确保第一次调用时有内容】---
     if (videoCallState.callHistory.length === 0) {
         const firstLineTrigger = videoCallState.initiator === 'user' ? `*你按下了接听键...*` : `*对方按下了接听键...*`;
         messagesForApi.push({ role: 'user', content: firstLineTrigger });
     }
-    // --- 修复结束 ---
     
-        try {
-            let isGemini = proxyUrl === GEMINI_API_URL;
-            // ▼▼▼ 【最终修复】为通话中的对话构建一个100%符合Gemini API规范的请求 ▼▼▼
-            
-            // 1. systemInstruction 始终是我们的 "inCallPrompt"
-            const systemInstructionForCall = inCallPrompt;
+    try {
+        let isGemini = proxyUrl === GEMINI_API_URL;
+        
+        const systemInstructionForCall = inCallPrompt;
+        const conversationHistoryForCall = [...videoCallState.callHistory];
 
-            // 2. contents 始终是我们的通话记录
-            const conversationHistoryForCall = [...videoCallState.callHistory];
+        if (conversationHistoryForCall.length === 0) {
+            const firstTurnContent = videoCallState.initiator === 'user'
+                ? `*你按下了接听键，视频接通了...*`
+                : `*对方接听了你的电话，视频接通了...*`;
+            conversationHistoryForCall.push({ role: 'user', content: firstTurnContent });
+        }
+        
+        let geminiConfig = toGeminiRequestData(model, apiKey, systemInstructionForCall, conversationHistoryForCall);
 
-            // 3. 【核心】如果通话记录为空（即通话刚开始），我们必须手动添加一个启动回合
-            if (conversationHistoryForCall.length === 0) {
-                const firstTurnContent = videoCallState.initiator === 'user'
-                    ? `*你按下了接听键，视频接通了...*`
-                    : `*对方接听了你的电话，视频接通了...*`;
-                conversationHistoryForCall.push({ role: 'user', content: firstTurnContent });
-            }
-            
-            // 4. 使用我们健壮的 toGeminiRequestData 函数来构建请求
-            let geminiConfig = toGeminiRequestData(model, apiKey, systemInstructionForCall, conversationHistoryForCall);
-            // ▲▲▲ 修复结束 ▲▲▲
+        const response = isGemini ? await fetch(geminiConfig.url, geminiConfig.data) : await fetch(`${proxyUrl}/v1/chat/completions`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+            body: JSON.stringify({
+                model: model, 
+                messages: [{ role: 'system', content: systemInstructionForCall }, ...conversationHistoryForCall], 
+                temperature: 0.8
+            })
+        });
 
-            const response = isGemini ? await fetch(geminiConfig.url, geminiConfig.data) : await fetch(`${proxyUrl}/v1/chat/completions`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-                body: JSON.stringify({
-                    model: model, 
-                    // OpenAI API 需要将 system prompt 合并到 messages
-                    messages: [{ role: 'system', content: systemInstructionForCall }, ...conversationHistoryForCall], 
-                    temperature: 0.8
-                })
-            });
+        if (!response.ok) throw new Error((await response.json()).error.message);
 
-            if (!response.ok) throw new Error((await response.json()).error.message);
+        const data = await response.json();
 
-            const data = await response.json();
+        if (isGemini && !data.candidates) {
+            console.error("Gemini API 在通话中返回了无效响应，可能是内容被拦截。响应:", JSON.stringify(data, null, 2));
+            const blockReason = data.promptFeedback?.blockReason || '未知安全原因';
+            const errorMessageContent = `[ERROR: Gemini API 拦截了本次回复 (原因: ${blockReason})。请尝试换个话题继续，或结束通话。]`;
+            const errorBubble = document.createElement('div');
+            errorBubble.className = 'call-message-bubble ai-speech';
+            errorBubble.style.color = '#ff8a80';
+            errorBubble.textContent = errorMessageContent;
+            callFeed.appendChild(errorBubble);
+            callFeed.scrollTop = callFeed.scrollHeight;
+            videoCallState.callHistory.push({ role: 'assistant', content: errorMessageContent });
+            return; 
+        }
 
-            // 在这里加入针对 Gemini 安全拦截的健壮性检查
+        const aiResponse = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
 
-            if (isGemini && !data.candidates) {
-                console.error("Gemini API 在通话中返回了无效响应，可能是内容被拦截。响应:", JSON.stringify(data, null, 2));
-                const blockReason = data.promptFeedback?.blockReason || '未知安全原因';
-                const errorMessageContent = `[ERROR: Gemini API 拦截了本次回复 (原因: ${blockReason})。请尝试换个话题继续，或结束通话。]`;
-                const errorBubble = document.createElement('div');
-                errorBubble.className = 'call-message-bubble ai-speech';
-                errorBubble.style.color = '#ff8a80';
-                errorBubble.textContent = errorMessageContent;
-                callFeed.appendChild(errorBubble);
-                callFeed.scrollTop = callFeed.scrollHeight;
-                videoCallState.callHistory.push({ role: 'assistant', content: errorMessageContent });
-                return; 
-            }
+        const connectingElement = callFeed.querySelector('em');
+        if (connectingElement) connectingElement.remove();
 
-            const aiResponse = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
-
-            const connectingElement = callFeed.querySelector('em');
-            if (connectingElement) connectingElement.remove();
-
-        // 4. 处理AI返回的内容，并将其存入通话历史
         if (videoCallState.isGroupCall) {
             const speechArray = parseAiResponse(aiResponse);
             speechArray.forEach(turn => {
                 if (!turn.name || turn.name === userNickname || !turn.speech) return;
+                
                 const aiBubble = document.createElement('div');
                 aiBubble.className = 'call-message-bubble ai-speech';
                 aiBubble.innerHTML = `<strong>${turn.name}:</strong> ${turn.speech}`;
                 callFeed.appendChild(aiBubble);
                 videoCallState.callHistory.push({ role: 'assistant', content: `${turn.name}: ${turn.speech}` });
                 
-                const speaker = videoCallState.participants.find(p => p.name === turn.name);
+                const speaker = videoCallState.participants.find(p => p.originalName === turn.name);
                 if (speaker) {
                     const speakingAvatar = document.querySelector(`.participant-avatar-wrapper[data-participant-id="${speaker.id}"] .participant-avatar`);
                     if(speakingAvatar) {
                         speakingAvatar.classList.add('speaking');
                         setTimeout(() => speakingAvatar.classList.remove('speaking'), 2000);
+                    }
+                    if (speaker.voiceId) {
+                        playTtsAudio(turn.speech, speaker.voiceId);
                     }
                 }
             });
@@ -11295,25 +11362,26 @@ ${videoCallState.preCallContext}
                 speakingAvatar.classList.add('speaking');
                 setTimeout(() => speakingAvatar.classList.remove('speaking'), 2000);
             }
-        }
 
-        // ▼▼▼ 在这里新增语音通话逻辑 ▼▼▼
-        if (videoCallState.isGroupCall) {
-            const speechArray = parseAiResponse(aiResponse);
-            speechArray.forEach(turn => {
-                if (turn.speech) {
-                    const speaker = videoCallState.participants.find(p => p.name === turn.name);
-                    if (speaker && speaker.voiceId) {
-                        playTtsAudio(turn.speech, speaker.voiceId);
-                    }
+            if (chat.settings.voiceId && aiResponse) {
+                const dialogueRegex = /"([^"]+)"/g;
+                const dialogues = [];
+                let match;
+                while ((match = dialogueRegex.exec(aiResponse)) !== null) {
+                    dialogues.push(match[1].trim());
                 }
-            });
-        } else {
-            if (chat.settings.voiceId) {
-                playTtsAudio(aiResponse, chat.settings.voiceId);
+                if (dialogues.length > 0) {
+                    console.log("【诊断：提取对话】提取到以下对话内容:", dialogues);
+                    dialogues.forEach(dialogue => {
+                        if (dialogue) {
+                            playTtsAudio(dialogue, chat.settings.voiceId);
+                        }
+                    });
+                } else {
+                    console.log("【诊断：提取对话】未在回复中找到带引号的对话内容，本次不播放语音。");
+                }
             }
         }
-        // ▲▲▲ 新增结束 ▲▲▲
 
         callFeed.scrollTop = callFeed.scrollHeight;
 
@@ -11327,6 +11395,8 @@ ${videoCallState.preCallContext}
         videoCallState.callHistory.push({ role: 'assistant', content: `[ERROR: ${error.message}]` });
     }
 }
+
+// ▲▲▲ 替换结束 ▲▲▲}
 
 // ▼▼▼ 将这个【全新函数】粘贴到JS功能函数定义区 ▼▼▼
 function toggleCallButtons(isGroup) {
@@ -11612,16 +11682,16 @@ async function triggerAiFriendApplication(chatId) {
         .join('\n');
 
     // ▼▼▼ 在这里添加下面的代码 ▼▼▼
-    let worldBookContent = '';
-    if (chat.settings.linkedWorldBookIds && chat.settings.linkedWorldBookIds.length > 0) {
-        const linkedContents = chat.settings.linkedWorldBookIds.map(bookId => {
-            const worldBook = state.worldBooks.find(wb => wb.id === bookId);
-            return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
-        }).filter(Boolean).join('');
-        if (linkedContents) {
-            worldBookContent = `\n\n# 核心世界观设定 (请参考)\n${linkedContents}\n`;
-        }
-    }
+//    let worldBookContent = '';
+//    if (chat.settings.linkedWorldBookIds && chat.settings.linkedWorldBookIds.length > 0) {
+//        const linkedContents = chat.settings.linkedWorldBookIds.map(bookId => {
+//            const worldBook = state.worldBooks.find(wb => wb.id === bookId);
+//            return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
+//        }).filter(Boolean).join('');
+//        if (linkedContents) {
+//            worldBookContent = `\n\n# 核心世界观设定 (请参考)\n${linkedContents}\n`;
+//        }
+//    }    已注释掉注入世界书节省prompt
     // ▲▲▲ 添加结束 ▲▲▲
 
     const systemPrompt = `
@@ -11630,7 +11700,7 @@ async function triggerAiFriendApplication(chatId) {
 现在，你非常希望能够和好，重新和用户聊天。请你仔细分析下面的“被拉黑前的对话摘要”，理解当时发生了什么，然后思考一个真诚的、符合你人设、并且【针对具体事件】的申请理由。
 # 你的角色设定
 ${chat.settings.aiPersona}
-${worldBookContent} // <--【核心】在这里注入世界书内容
+\${worldBookContent} // <--【核心】在这里注入世界书内容(已注释掉节省prompt)
 # 被拉黑前的对话摘要 (这是你被拉黑的关键原因)
 ${contextSummary}
 # 指令格式
@@ -12462,31 +12532,155 @@ async function sendUserLinkShare() {
 
 // ▲▲▲ 新函数粘贴结束 ▲▲▲
 
+/**
+ * 【全新】更新并填充 Voice ID 的历史记录下拉框
+ */
+async function updateVoiceIdHistoryDatalist() {
+    const datalist = document.getElementById('voice-id-history');
+    if (!datalist) return;
+    datalist.innerHTML = ''; // Clear old options
+
+    const allChats = await db.chats.toArray();
+    const uniqueVoiceIds = new Set();
+    allChats.forEach(chat => {
+        if (chat.settings && chat.settings.voiceId) {
+            uniqueVoiceIds.add(chat.settings.voiceId);
+        }
+    });
+
+    uniqueVoiceIds.forEach(voiceId => {
+        const option = document.createElement('option');
+        option.value = voiceId;
+        datalist.appendChild(option);
+    });
+}
+
 // ▼▼▼ 【全新】TTS核心功能函数 ▼▼▼
 const ttsPlayer = document.getElementById('tts-player');
 let isTtsPlaying = false;
 let ttsQueue = [];
-
+// ▼▼▼ 【必需】Hex 字符串解码函数 ▼▼▼
 /**
- * 根据文本和语音ID，获取Minimax TTS音频并播放
+ * 将十六进制字符串转换为 Uint8Array (二进制字节数组)
+ * @param {string} hexString - The hexadecimal string to convert.
+ * @returns {Uint8Array} - The resulting byte array.
+ */
+function hexToUint8Array(hexString) {
+    if (hexString.length % 2 !== 0) {
+        // In case of an odd-length string from the server, pad it.
+        hexString = '0' + hexString;
+    }
+    const arrayBuffer = new Uint8Array(hexString.length / 2);
+    for (let i = 0; i < hexString.length; i += 2) {
+        arrayBuffer[i / 2] = parseInt(hexString.substr(i, 2), 16);
+    }
+    return arrayBuffer;
+}
+// ▲▲▲ 函数结束 ▲▲▲
+/**
+ * 【V11 - 终极稳定版】通用 TTS 核心函数
+ * - 修正了 11Labs 的 SSML 参数错误
+ * - 确保 Custom URL 不会添加任何后缀
+ * - 读取并应用每个角色独立的 voice setting
+ * - 完整包含所有服务商的逻辑
  * @param {string} text - 要转换为语音的文本
- * @param {string} voiceId - 在Minimax处的语音ID
+ * @param {string} voiceId - 从聊天设置中获取的主要角色 Voice ID
  */
 async function playTtsAudio(text, voiceId) {
     if (!text || !voiceId) return;
 
-    const { minimaxGroupId, minimaxApiKey } = state.apiConfig;
-    if (!minimaxGroupId || !minimaxApiKey) {
-        console.warn("Minimax Group ID 或 API Key未设置，无法播放语音。");
+    // 1. 获取全局和角色独立的设置
+    const { ttsProvider, minimaxGroupId, customTtsUrl, ttsApiKey, ttsModel } = state.apiConfig;
+    if (!ttsProvider || !ttsApiKey) {
+        await showCustomAlert("语音播放失败", "请先在API设置中完成 TTS 相关配置 (服务商、API Key)。");
         return;
     }
+    const chat = state.chats[state.activeChatId];
+    const voiceSettings = chat?.settings?.voiceSettings || {};
 
-    ttsQueue.push({ text, voiceId });
-    if (!isTtsPlaying) {
-        processTtsQueue();
+    let apiUrl = '';
+    const headers = { 'Content-Type': 'application/json' };
+    let body = {};
+
+    // --- 【核心重构】为每个服务商建立独立的、清晰的请求逻辑 ---
+    
+    if (ttsProvider === 'minimax_pro') {
+        if (!minimaxGroupId) {
+            await showCustomAlert("语音播放失败", "使用 Minimax API 需要填写 Group ID。");
+            return;
+        }
+        apiUrl = `${MINIMAX_PRO_TTS_URL}?GroupId=${minimaxGroupId}`;
+        headers['Authorization'] = `Bearer ${ttsApiKey}`;
+        body = {
+            model: ttsModel || 'speech-01',
+            text: text,
+            stream: false,
+            voice_setting: {
+                voice_id: voiceId,
+                ...voiceSettings // 合并角色独立设置
+            }
+        };
+
+    } else if (ttsProvider === 'elevenlabs') {
+        apiUrl = `${TTS_PROVIDER_URLS.elevenlabs}/text-to-speech/${voiceId}`;
+        headers['xi-api-key'] = ttsApiKey;
+        
+        // 11Labs API 会自动解析<speak>标签，无需额外参数
+        let processedText = text.replace(/\*([^*]+)\*/g, '<emphasis level="strong">$1</emphasis>');
+        
+        body = {
+            text: `<speak>${processedText}</speak>`,
+            model_id: ttsModel,
+            // 【关键修复】voice_settings 对象只包含从UI读取的参数
+            voice_settings: voiceSettings 
+        };
+
+    } else if (ttsProvider === 'voicv') {
+        apiUrl = `${TTS_PROVIDER_URLS.voicv}/tts`;
+        headers['x-api-key'] = ttsApiKey;
+        body = { 
+            voiceId: voiceId, 
+            text: text, 
+            format: 'mp3',
+            ...voiceSettings // 合并额外参数
+        };
+
+    } else if (ttsProvider === 'openai') {
+        apiUrl = `${TTS_PROVIDER_URLS.openai}/audio/speech`;
+        headers['Authorization'] = `Bearer ${ttsApiKey}`;
+        body = { 
+            model: ttsModel, 
+            input: text, 
+            voice: voiceId,
+            ...voiceSettings // 合并额外参数
+        };
+
+    } else if (ttsProvider === 'custom') {
+        // 【Bug 修复】Custom URL 逻辑独立，不再添加任何后缀
+        apiUrl = customTtsUrl;
+        if (!apiUrl) {
+            await showCustomAlert("语音播放失败", "请在API设置中填写 Custom Provider Full URL。");
+            return;
+        }
+        headers['Authorization'] = `Bearer ${ttsApiKey}`;
+        body = { 
+            model: ttsModel, 
+            input: text, 
+            voice: voiceId,
+            ...voiceSettings // 合并额外参数
+        };
     }
-}
 
+    // --- 加入队列 ---
+    ttsQueue.push({ url: apiUrl, headers, body });
+    if (!isTtsPlaying) { processTtsQueue(); }
+}
+// ▲▲▲ 替换结束 ▲▲▲}
+
+// ▼▼▼ 请用这个【全新增强版】函数，完整替换您旧的 processTtsQueue 函数 ▼▼▼
+/**
+ * 【V4 - 最终修正版】处理TTS队列，正确处理 Minimax 的 Hex 响应
+ */
 async function processTtsQueue() {
     if (ttsQueue.length === 0) {
         isTtsPlaying = false;
@@ -12494,33 +12688,52 @@ async function processTtsQueue() {
     }
 
     isTtsPlaying = true;
-    const { text, voiceId } = ttsQueue.shift();
+    const { url, headers, body } = ttsQueue.shift();
+    const provider = state.apiConfig.ttsProvider;
 
     try {
-        const url = `https://api.minimax.chat/v1/text_to_speech?GroupId=${state.apiConfig.minimaxGroupId}`;
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${state.apiConfig.minimaxApiKey}`
-            },
-            body: JSON.stringify({
-                text: text,
-                voice_id: voiceId,
-                model: "speech-01",
-                speed: 1.0,
-            })
+            headers: headers,
+            body: JSON.stringify(body)
         });
 
-        if (!response.ok) {
-            throw new Error(`TTS API 错误: ${response.status} ${await response.text()}`);
-        }
+        const contentType = response.headers.get("content-type");
+        let audioBlob;
 
-        const audioBlob = await response.blob();
+        if (provider === 'minimax_pro' && contentType && contentType.includes("application/json")) {
+            // --- Minimax 逻辑：处理 JSON 响应，解码 Hex ---
+            const data = await response.json();
+            if (data.base_resp?.status_code !== 0) {
+                throw new Error(`Minimax API 错误: ${data.base_resp?.status_msg}`);
+            }
+            if (!data.data || !data.data.audio) { // **We now correctly look for the 'audio' field**
+                 throw new Error("Minimax 响应中未找到 'audio' hex 数据。");
+            }
+            const audioBytes = hexToUint8Array(data.data.audio);
+            audioBlob = new Blob([audioBytes], { type: 'audio/mpeg' });
+
+        } else if (response.ok && contentType && contentType.includes("audio")) {
+            // --- 标准逻辑：处理直接的音频流 ---
+            audioBlob = await response.blob();
+        } else {
+            // --- 统一的错误处理 ---
+            const errorText = await response.text();
+            let errorMessage = `TTS API 错误: ${response.status}.`;
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage += `\n\n${errorJson.error?.message || errorJson.base_resp?.status_msg || errorText}`;
+            } catch (e) {
+                errorMessage += `\n\n${errorText}`;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        // --- 通用的播放逻辑 ---
         const audioUrl = URL.createObjectURL(audioBlob);
         
         ttsPlayer.src = audioUrl;
-        ttsPlayer.play();
+        await ttsPlayer.play();
         
         ttsPlayer.onended = () => {
             URL.revokeObjectURL(audioUrl);
@@ -12531,9 +12744,10 @@ async function processTtsQueue() {
         console.error("播放TTS语音失败:", error);
         await showCustomAlert("语音播放失败", error.message);
         isTtsPlaying = false;
-        processTtsQueue();
+        processTtsQueue(); 
     }
 }
+// ▲▲▲ 替换结束 ▲▲▲
 // ▲▲▲ 全新函数结束 ▲▲▲
 
 /**
@@ -13388,9 +13602,143 @@ document.getElementById('save-wallpaper-btn').addEventListener('click', async ()
     showScreen('home-screen');
 });
 // ▲▲▲ 替换结束 ▲▲▲
+
+// ▼▼▼ 【全新】TTS 设置界面交互事件 ▼▼▼
+document.getElementById('tts-provider-select').addEventListener('change', (e) => {
+    const provider = e.target.value;
+    document.getElementById('custom-tts-url-group').style.display = provider === 'custom' ? 'block' : 'none';
+    document.getElementById('minimax-group-id-group').style.display = provider === 'minimax_pro' ? 'block' : 'none';
+});
+
+// ▼▼▼ 【全新】TTS 模型拉取与显示 ▼▼▼
+document.getElementById('fetch-tts-models-btn').addEventListener('click', async () => {
+    const provider = document.getElementById('tts-provider-select').value;
+    const apiKey = document.getElementById('tts-api-key').value.trim();
+    let baseUrl;
+
+    if (provider === 'custom') {
+        baseUrl = document.getElementById('custom-tts-url').value.trim();
+    } else if (provider === 'minimax_pro') {
+        // Minimax Pro 的模型列表接口需要不同的处理
+        const groupId = document.getElementById('minimax-group-id').value.trim();
+        if (!apiKey || !groupId) {
+            alert('请先填写 Minimax Group ID 和 API Key。');
+            return;
+        }
+        // 调用专门的 Minimax 模型拉取函数
+        fetchMinimaxTtsModels(groupId, apiKey); 
+        return; // 结束执行，因为 Minimax 的逻辑是独立的
+    } else {
+        baseUrl = TTS_PROVIDER_URLS[provider];
+    }
+        
+    if (!apiKey || !baseUrl) {
+        alert('请先选择服务商、填写API Key和必要的URL。');
+        return;
+    }
+    
+    const modelsUrl = `${baseUrl}/models`;
+    const headers = {};
+    if (provider === 'elevenlabs') {
+        headers['xi-api-key'] = apiKey;
+    } else {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    
+    const modelListContainer = document.getElementById('fetched-tts-models-list');
+    modelListContainer.innerHTML = '正在拉取...';
+
+    try {
+        const response = await fetch(modelsUrl, { headers });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`API 错误: ${errorData.error?.message || response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const models = data.data || data;
+
+        if (!Array.isArray(models) || models.length === 0) {
+            modelListContainer.textContent = '未找到任何模型。';
+            return;
+        }
+
+        modelListContainer.innerHTML = ''; // 清空"正在拉取"
+        const modelInput = document.getElementById('tts-model-input');
+
+        models.forEach(modelData => {
+            const modelId = modelData.model_id || modelData.id;
+            if (!modelId) return;
+
+            // 过滤，只显示TTS相关的模型 (ElevenLabs specific)
+            if (provider === 'elevenlabs' && modelData.can_do_text_to_speech !== true) {
+                return;
+            }
+
+            const modelButton = document.createElement('button');
+            modelButton.className = 'format-btn'; // 复用样式
+            modelButton.textContent = modelId;
+            modelButton.style.cursor = 'pointer';
+            modelButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                modelInput.value = modelId;
+            });
+            modelListContainer.appendChild(modelButton);
+        });
+
+    } catch (error) {
+        modelListContainer.textContent = `拉取失败: ${error.message}`;
+    }
+});
+
+// 【全新】专门用于拉取 Minimax TTS 模型的函数
+async function fetchMinimaxTtsModels(groupId, apiKey) {
+    const modelListContainer = document.getElementById('fetched-tts-models-list');
+    modelListContainer.innerHTML = '正在拉取 Minimax 模型...';
+    
+    try {
+        const response = await fetch(`https://api.minimax.chat/v1/models/list?GroupId=${groupId}`, {
+            headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        if (!response.ok) throw new Error((await response.json()).base_resp?.status_msg || '请求失败');
+
+        const data = await response.json();
+        const ttsModels = data.model_list.filter(model => model.model_category === 'speech');
+        
+        modelListContainer.innerHTML = ''; // 清空
+        const modelInput = document.getElementById('tts-model-input');
+
+        if (ttsModels.length === 0) {
+            modelListContainer.textContent = '未找到可用的 Minimax 语音模型。';
+            return;
+        }
+
+        ttsModels.forEach(model => {
+            const modelButton = document.createElement('button');
+            modelButton.className = 'format-btn';
+            modelButton.textContent = model.model_id;
+            modelButton.title = model.model_name;
+            modelButton.style.cursor = 'pointer';
+            modelButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                modelInput.value = model.model_id;
+            });
+            modelListContainer.appendChild(modelButton);
+        });
+    } catch (error) {
+        modelListContainer.textContent = `拉取 Minimax 模型失败: ${error.message}`;
+    }
+}
+// ▲▲▲ 新增结束 ▲▲▲
             document.getElementById('save-api-settings-btn').addEventListener('click', async () => { state.apiConfig.proxyUrl = document.getElementById('proxy-url').value.trim(); state.apiConfig.apiKey = document.getElementById('api-key').value.trim(); state.apiConfig.model = document.getElementById('model-select').value;
-            state.apiConfig.minimaxGroupId = document.getElementById('minimax-group-id').value.trim();
-            state.apiConfig.minimaxApiKey = document.getElementById('minimax-api-key').value.trim();
+            // ▼▼▼ 【全新】保存通用 TTS 设置 (V2) ▼▼▼
+    state.apiConfig.ttsProvider = document.getElementById('tts-provider-select').value;
+    state.apiConfig.minimaxGroupId = document.getElementById('minimax-group-id').value.trim();
+    state.apiConfig.customTtsUrl = document.getElementById('custom-tts-url').value.trim();
+    state.apiConfig.ttsApiKey = document.getElementById('tts-api-key').value.trim();
+    state.apiConfig.ttsModel = document.getElementById('tts-model-input').value.trim();
+
+    // ▲▲▲ 保存结束 ▲▲▲
             await db.apiConfig.put(state.apiConfig); 
 
 // 在 'save-api-settings-btn' 的 click 事件监听器内部
@@ -13492,7 +13840,7 @@ alert('API设置已保存!'); });
 await db.worldBooks.put(book); document.getElementById('world-book-editor-title').textContent = newName; editingWorldBookId = null; renderWorldBookScreen(); showScreen('world-book-screen'); } });
             document.getElementById('chat-messages').addEventListener('click', (e) => { const aiImage = e.target.closest('.ai-generated-image'); if (aiImage) { const description = aiImage.dataset.description; if (description) showCustomAlert('照片描述', description); return; }
             
-// ▼▼▼ 请用这个【已修复】的 voiceMessage 点击事件逻辑，替换掉你原来的那一段 ▼▼▼
+  // ▼▼▼ 请用这个【已修复】的 voiceMessage 点击事件逻辑，替换掉你原来的那一段 ▼▼▼
         const voiceMessage = e.target.closest('.voice-message-body');
             if (voiceMessage) {
                 // 1. 找到正确的父级元素来获取数据
@@ -13579,9 +13927,35 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
     } else {
         document.getElementById('ai-persona').value = chat.settings.aiPersona;
         document.getElementById('ai-avatar-preview').src = chat.settings.aiAvatar || defaultAvatar;
-        // ▼▼▼ 在这里新增 ▼▼▼
-        document.getElementById('ai-voice-id-input').value = chat.settings.voiceId || '';
-        // ▲▲▲ 新增结束 ▲▲▲
+
+    // ▼▼▼ 【全新】动态语音设置 UI 渲染 ▼▼▼
+    // 1. 获取当前全局TTS服务商
+    const provider = state.apiConfig.ttsProvider || 'minimax_pro';
+
+    // 2. 显示/隐藏对应的设置面板
+    const elSettings = document.getElementById('elevenlabs-voice-settings');
+    const mmSettings = document.getElementById('minimax-voice-settings');
+    elSettings.style.display = provider === 'elevenlabs' ? 'block' : 'none';
+    mmSettings.style.display = provider === 'minimax_pro' ? 'block' : 'none';
+
+    // 3. 填充 Voice ID 和历史记录
+    document.getElementById('ai-voice-id-input').value = chat.settings.voiceId || '';
+    await updateVoiceIdHistoryDatalist();
+
+    // 4. 填充对应服务商的参数值
+    const voiceSettings = chat.settings.voiceSettings || {};
+    if (provider === 'elevenlabs') {
+        document.getElementById('el-stability').value = voiceSettings.stability ?? '';
+        document.getElementById('el-similarity').value = voiceSettings.similarity_boost ?? '';
+        document.getElementById('el-style').value = voiceSettings.style ?? '';
+        document.getElementById('el-speed').value = voiceSettings.speed ?? '';
+        document.getElementById('el-speaker-boost').checked = voiceSettings.use_speaker_boost || false;
+    } else if (provider === 'minimax_pro') {
+        document.getElementById('mm-speed').value = voiceSettings.speed ?? '';
+        document.getElementById('mm-vol').value = voiceSettings.vol ?? '';
+        document.getElementById('mm-pitch').value = voiceSettings.pitch ?? '';
+    }
+    // ▲▲▲ 渲染结束 ▲▲▲
         
         // 【核心修改2】如果是单聊，就加载分组列表到下拉框
         const select = document.getElementById('assign-group-select');
@@ -13626,7 +14000,7 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
     document.getElementById('chat-settings-modal').classList.add('visible');
 });
 // ▲▲▲ 替换结束 ▲▲▲
-            
+
             function renderGroupMemberSettings(members) { const container = document.getElementById('group-members-settings'); container.innerHTML = ''; members.forEach(member => { const div = document.createElement('div'); div.className = 'member-editor'; div.dataset.memberId = member.id; div.innerHTML = `<img src="${member.avatar}" alt="${member.groupNickname}"><div class="member-name">${member.groupNickname}</div>`; div.addEventListener('click', () => openMemberEditor(member.id)); container.appendChild(div); }); }
             function openMemberEditor(memberId) { editingMemberId = memberId; const chat = state.chats[state.activeChatId]; const member = chat.members.find(m => m.id === memberId); document.getElementById('member-name-input').value = member.groupNickname; document.getElementById('member-persona-input').value = member.persona; document.getElementById('member-avatar-preview').src = member.avatar; document.getElementById('member-settings-modal').classList.add('visible'); }
         
@@ -13640,7 +14014,7 @@ document.getElementById('chat-settings-btn').addEventListener('click', async () 
             // ▼▼▼ 在这里新增 ▼▼▼
             member.voiceId = document.getElementById('member-voice-id-input').value.trim();
             // ▲▲▲ 新增结束 ▲▲▲
-    
+
     renderGroupMemberSettings(chat.members); 
     document.getElementById('member-settings-modal').classList.remove('visible'); 
 });
@@ -13670,9 +14044,36 @@ document.getElementById('save-chat-settings-btn').addEventListener('click', asyn
     } else {
         chat.settings.aiPersona = document.getElementById('ai-persona').value;
         chat.settings.aiAvatar = document.getElementById('ai-avatar-preview').src;
-        // ▼▼▼ 在这里新增 ▼▼▼
-        chat.settings.voiceId = document.getElementById('ai-voice-id-input').value.trim();
-        // ▲▲▲ 新增结束 ▲▲▲
+    // ▼▼▼ 【全新】动态语音设置保存逻辑 ▼▼▼
+    // 1. 保存 Voice ID
+    chat.settings.voiceId = document.getElementById('ai-voice-id-input').value.trim();
+
+    // 2. 根据当前全局服务商，读取并保存对应的参数
+    const provider = state.apiConfig.ttsProvider || 'minimax_pro';
+    const newVoiceSettings = {};
+
+    if (provider === 'elevenlabs') {
+        const stability = parseFloat(document.getElementById('el-stability').value);
+        const similarity = parseFloat(document.getElementById('el-similarity').value);
+        const style = parseFloat(document.getElementById('el-style').value);
+        const speed = parseFloat(document.getElementById('el-speed').value);
+        if (!isNaN(stability)) newVoiceSettings.stability = stability;
+        if (!isNaN(similarity)) newVoiceSettings.similarity_boost = similarity;
+        if (!isNaN(style)) newVoiceSettings.style = style;
+        if (!isNaN(speed)) newVoiceSettings.speed = speed;
+        newVoiceSettings.use_speaker_boost = document.getElementById('el-speaker-boost').checked;
+    } else if (provider === 'minimax_pro') {
+        const speed = parseFloat(document.getElementById('mm-speed').value);
+        const vol = parseFloat(document.getElementById('mm-vol').value);
+        const pitch = parseInt(document.getElementById('mm-pitch').value);
+        if (!isNaN(speed)) newVoiceSettings.speed = speed;
+        if (!isNaN(vol)) newVoiceSettings.vol = vol;
+        if (!isNaN(pitch)) newVoiceSettings.pitch = pitch;
+    }
+    
+    // 3. 将构建好的对象存入 chat.settings
+    chat.settings.voiceSettings = newVoiceSettings;
+    // ▲▲▲ 保存结束 ▲▲▲
         const selectedGroupId = document.getElementById('assign-group-select').value;
         chat.groupId = selectedGroupId ? parseInt(selectedGroupId) : null;
     }
@@ -14386,7 +14787,7 @@ postsList.addEventListener('click', async (e) => {
         return;
     }
     // ▼▼▼ 请用下面这段全新的代码，完整替换旧的 “if (sendBtn)” 逻辑块 ▼▼▼
-    const sendBtn = target.closest('.comment-send-btn');
+const sendBtn = target.closest('.comment-send-btn');
 if (sendBtn) {
     const postContainer = sendBtn.closest('.qzone-post-container');
     if (!postContainer) return;
